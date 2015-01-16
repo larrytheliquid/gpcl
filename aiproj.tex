@@ -8,7 +8,11 @@
 
 \documentclass{article}
 
+\usepackage{graphicx}
+\usepackage[hscale=0.7,vscale=0.8]{geometry}
+
 \begin{document}
+
 \maketitle
 
 \begin{abstract}
@@ -98,6 +102,9 @@ For plotting and visualization of the GP algorithms, I will use the
 Haskell library easyplot, which is a wrapper around gnuplot. Easyplot
 is available via Haskell's standard package manager, Cabal
 (\texttt{cabal install easyplot}).
+If Kuchs' algorithm ends up requiring a proper term rewrite system
+rather than a combinator evaluator written in Haskell, I will use the
+Maude system.
 
 \section{Plan for Testing}
 
@@ -127,6 +134,59 @@ disjunctions on the right-hand side of the equation. However, I'm
 uncertain about how good evolutionary learning will be for disunctions
 in the term languages versus an algorithm that works over multiple
 equations as primitives.
+
+\section{Dependencies}
+
+\includegraphics[scale=0.22]{dependencies.png}
+
+\section{Timeline in Weeks}
+
+\begin{enumerate}
+
+\item
+\begin{itemize}
+\item Read and understand details of Fuchs' paper.
+\end{itemize}
+
+\item
+\begin{itemize}
+\item Implement Fuchs' paper (higher-order GP).
+\end{itemize}
+
+\item
+\begin{itemize}
+\item Gather OTTER test data.
+\item Graph my implementation on OTTER data.
+\item Evaluate my implementation versus the results claimed in the paper.
+\item Debug my implementation.
+\end{itemize}
+
+\item
+\begin{itemize}
+\item Implement Koza first-order reference GP for Boolean problems.
+\item Create sample boolean GP problems.
+\item Graph and compare Koza versus Fuchs (respectively FO and HO) GP.
+\end{itemize}
+
+\item
+\begin{itemize}
+\item Repeat Koza versus Fuchs for natural number problems.
+\item Experiment with multiple variables in equations.
+\item Experiment with reused variables in equations.
+\end{itemize}
+
+\item
+\begin{itemize}
+\item Learn Illative combinatory logic.
+\item Brainstorm adaptations of Fuchs to Illative combinatory logic.
+\end{itemize}
+
+\item
+\begin{itemize}
+\item Implement adaptations of Fuchs to Illative combinatory logic.
+\end{itemize}
+
+\end{enumerate}
 
 \end{document}
 

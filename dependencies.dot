@@ -1,0 +1,15 @@
+digraph G {
+  "First-order GP implementation" -> "First-order GP boolean problems";
+  "Learn details of Fuchs paper" -> "Higher-order GP implementation";
+  "Higher-order GP implementation" -> "Higher-order GP boolean problems";
+  "First-order GP boolean problems" -> "Compare FO & HO GP for boolean problems";
+  "Higher-order GP boolean problems" -> "Compare FO & HO GP for boolean problems";
+  "Gather OTTER test data" -> "Graph higher-order GP result";
+  "Higher-order GP implementation" -> "Graph higher-order GP result";
+  "Graph higher-order GP result" -> "Evaluate higher-order GP";
+  "Learn illative intuitionistic comb-logic" -> "Extend Fuchs to illative comb-logic";
+  "Learn details of Fuchs paper" -> "Extend Fuchs to illative comb-logic";
+  "Higher-order GP implementation" -> "Multiple and repeated variable problems";
+  "Higher-order GP implementation" -> "Illative higher-order GP implementation";
+  "Extend Fuchs to illative comb-logic" -> "Illative higher-order GP implementation";
+}
