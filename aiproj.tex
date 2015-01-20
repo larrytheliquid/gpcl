@@ -83,7 +83,7 @@ problems, I would also like to encode Boolean and Natural Number
 problems via Church encodings. Then, I would like to compare
 higher-order, combinator-based GP to standard (Koza) GP on boolean and
 number problems using first-order primitives (I expect the general
-algorithm to do worse, but hopefully not significantly worth).
+algorithm to do worse, but hopefully not significantly worse).
 
 Additionally, I would like to test if Kuchs' algorithm scales to using
 mutiple variables in equations and repeated variables in equations.
@@ -123,9 +123,9 @@ I plan to implement the combinator evaluator in Haskell, which is
 equivalent to a term rewrite system that is confluent. Because Fuchs'
 algorithm I am using comes out of term rewriting research, it may need
 a confluence checker. If it does, it's probably easier to directly use
-a term rewriting system / programming languages such as Maude.
+a term rewriting system / programming language such as Maude.
 
-I'm uncertain Fuchs' algorithm scales to using
+I'm uncertain whether Fuchs' algorithm scales to using
 multiple variables and reused variables, which would be necessary in a
 real unification system. I think it should be okay, since fitness is
 just calculated by evaluating the substituted candidate term and doing
@@ -135,8 +135,8 @@ Specifying a function is often done in terms of several rewriting
 equations, while Fuchs' algorithm works over a single equation. It is
 possible to combine several equations into a single equation via
 disjunctions on the right-hand side of the equation. However, I'm
-uncertain about how good evolutionary learning will be for disunctions
-in the term languages versus an algorithm that works over multiple
+uncertain about how good evolutionary learning will be for disjunctions
+in the term language versus an algorithm that works over multiple
 equations as primitives.
 
 \section{Dependencies}
