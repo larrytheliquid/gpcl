@@ -1,0 +1,101 @@
+\title{\textbf{Week 1 Report}\\Higher-Order Genetic Programming \\for Semantic Unification}
+
+\author{Larry Diehl}
+\date{\today}
+
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[hscale=0.7,vscale=0.8]{geometry}
+
+\begin{document}
+
+\maketitle
+
+\section{Summary}
+
+I read the ``Evolving Combinators'' paper by Kuchs, which I will be
+using as a basis for this project. The Kuchs paper covers how to
+evolve higher-order programs with GP. To more deeply understand the
+ideas, I reviewed Koza's classical first-order GP, and compared the
+approaches taken by Koza and Kuchs.
+
+The major differences between Koza and Kuchs lie in the encoding of
+population individuals, and the fitness function. Both Koza and Fuchs
+are covered below, focusing on encoding and fitness.
+
+\section{First-Order Koza GP}
+
+Koza's classic GP approaches are used to evolve first-order programs.
+For example, one might evolve a program that takes 2 integers as
+inputs and returns the first integer raised to the second. Another
+example would be to take 2 boolean inputs and return results
+that model some boolean circuit.
+
+\subsection{Encoding}
+
+Because the inputs and outputs are
+just first-order data, the population of evolved programs consists of
+a function set (branches in a tree, where the branching factor equals
+the arity of the function) and a terminal set (leaves in a tree, which
+may be a primitive value like an integer, or a variable for one of the
+inputs to the function). 
+
+\subsection{Fitness}
+
+A fitness score is used to determine which members of the population
+should be bred to create the next generation. For a fitness score,
+a higher number is better. Sometimes an ``error'' score is used
+instead of fitness, where a lower number is better (an error of 0 is
+a program with maximum fitness).
+
+In Koza's GP, it is typical to have a large number of fitness cases.
+For example, you might have a complete boolean function and try to
+evolve a circuit with the smallest number of boolean logic gates. In
+such a case, a fitness score can be primarily based on the number of
+input/output cases the program successfully matched. For functions
+with infinite domains, such as evolving the exponentiation function on
+integers, you can take a distribution of integers and still have a
+large number of fitness cases.
+
+If you happen to have a smaller number of fitness cases, you must have
+a more clever fitness function. For example, if the output of fitness
+cases are integers, you might not only want to consider a boolean
+pass/fail fitness score, but consider the absolute value of the
+difference between the evolved output and the desired output.
+
+\section{Higher-Order Fuchs GP}
+
+Fuchs evolves higher-order programs, in order to solve problems like
+finding a value to subsitute into an existential variable of a formula
+containing an equation with universally quantified variables.
+
+\subsection{Encoding}
+
+Unlike Koza's first order unification, inputs to evolved programs may
+themselves be (higher-order programs), not just primitive data like
+integers or booleans. A naive approach may be to use lambda's at
+branches, and variables at leaves. However, then crossover would not
+be very meaningful because free/captured variables might get crossed
+over into a program not using them.
+
+Instead, fuchs evolves programs using SKI (and other) combinators of
+combinatory logic. Programs consisting of combinators can still take
+and produce higher-order inputs and outputs. The encoding of
+population used by Kuchs is particularly simple, consisting of
+application nodes for branches and combinators at leaves. Variables
+are not represented explicitly, and are only passed in when
+calculating fitness.
+
+\subsection{Fitness}
+
+To calculate fitness, one must figure out if one equation equals
+another after performing reductions/rewrites due to combinators. Since
+you only have ``one'' fitness cases, the fitness score must be more
+clever. A structural difference comparision is used, that calculates
+similarity/difference based on the number of shared application nodes
+containing identical sides, equal leaves, or an unequal number of
+branches versus leaves.
+
+\end{document}
+
