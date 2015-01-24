@@ -95,13 +95,13 @@ rand bound = do
   put seed'
   return r
 
-crossover :: Tree a -> Tree a -> RandM (Tree a , Tree a)
-crossover t1 t2 = do
+crossover :: (Tree a , Tree a) -> RandM (Tree a , Tree a)
+crossover (t1 , t2) = do
   i1 <- rand (maxIndex t1)
   i2 <- rand (maxIndex t2)
-  let p1 = locate t1 i1
-  let p2 = locate t2 i2
-  return (rootTree (attach t2 p1) , rootTree (attach t1 p2))
+  let h1 = locate t1 i1
+  let h2 = locate t2 i2
+  return (rootTree (attach t2 h1) , rootTree (attach t1 h2))
 
 ----------------------------------------------------------------------
 
