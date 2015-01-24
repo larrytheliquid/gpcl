@@ -63,11 +63,8 @@ goRoot :: Zipper a -> Zipper a
 goRoot z | isRoot z = z
 goRoot z | otherwise = goRoot (goUp z)
 
-focusedTree :: Zipper a -> Tree a
-focusedTree = fst
-
 rootTree :: Zipper a -> Tree a
-rootTree = focusedTree . goRoot
+rootTree = fst . goRoot
 
 ----------------------------------------------------------------------
 
@@ -90,9 +87,9 @@ type RandM = State StdGen
 
 rand :: Int -> RandM Int
 rand bound = do
-  seed <- get
-  let (r , seed') = randomR (0, bound) seed
-  put seed'
+  s <- get
+  let (r , s') = randomR (0, bound) s
+  put s'
   return r
 
 crossover :: (Tree a , Tree a) -> RandM (Tree a , Tree a)
