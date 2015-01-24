@@ -22,6 +22,9 @@ size :: Tree a -> Int
 size (Leaf _) = 1
 size (Branch l r) = 1 + size l + size r
 
+maxIndex :: Tree a -> Int
+maxIndex = pred . size
+
 root :: Tree a -> Zipper a
 root t = (t , [])
 
@@ -47,11 +50,24 @@ goRight (Branch l r , xs) = (r , Right l : xs)
 goRight _ = error "Cannot go right"
 
 traverse :: Zipper a -> [Zipper a]
-traverse t | isLeaf t = [t]
-traverse t | otherwise = t : (traverse (goLeft t) ++ traverse (goRight t))
+traverse z | isLeaf z = [z]
+traverse z | otherwise = z : (traverse (goLeft z) ++ traverse (goRight z))
 
-getNode :: Tree a -> Int -> Zipper a
-getNode t i = traverse (root t) !! i
+locate :: Tree a -> Int -> Zipper a
+locate t i = traverse (root t) !! i
+
+attach :: Tree a -> Zipper a -> Zipper a
+attach t (_ , xs) = (t , xs)
+
+goRoot :: Zipper a -> Zipper a
+goRoot z | isRoot z = z
+goRoot z | otherwise = goRoot (goUp z)
+
+focusedTree :: Zipper a -> Tree a
+focusedTree = fst
+
+rootTree :: Zipper a -> Tree a
+rootTree = focusedTree . goRoot
 
 ----------------------------------------------------------------------
 
@@ -71,6 +87,21 @@ score = undefined
 ----------------------------------------------------------------------
 
 type RandM = State StdGen
+
+rand :: Int -> RandM Int
+rand bound = do
+  seed <- get
+  let (r , seed') = randomR (0, bound) seed
+  put seed'
+  return r
+
+crossover :: Tree a -> Tree a -> RandM (Tree a , Tree a)
+crossover t1 t2 = do
+  i1 <- rand (maxIndex t1)
+  i2 <- rand (maxIndex t2)
+  let p1 = locate t1 i1
+  let p2 = locate t2 i2
+  return (rootTree (attach t2 p1) , rootTree (attach t1 p2))
 
 ----------------------------------------------------------------------
 
