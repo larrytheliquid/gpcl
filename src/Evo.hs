@@ -8,6 +8,7 @@ import Exp
 import Control.Applicative
 import Control.Monad.State
 import System.Random
+import GHC.Exts ( sortWith )
 
 ----------------------------------------------------------------------
 
@@ -40,8 +41,8 @@ eg = Branch (Branch (Leaf 'a') (Branch (Leaf 'b') (Leaf 'c'))) (Leaf 'd')
 type Rand = State StdGen
 type Gen = Int
 
-rand :: Int -> Rand Int
-rand bound = do
+randInt :: Int -> Rand Int
+randInt bound = do
   s <- get
   let (r , s') = randomR (0, pred bound) s
   put s'
@@ -49,8 +50,8 @@ rand bound = do
 
 crossover :: Tree a -> Tree a -> Rand (Tree a)
 crossover t1 t2 = do
-  z1 <- locate t1 <$> rand (size t1)
-  z2 <- locate t2 <$> rand (size t2)
+  z1 <- locate t1 <$> randInt (size t1)
+  z2 <- locate t2 <$> randInt (size t2)
   return $ rootTree (replace (currentTree z2) z1)
 
 type Indiv = Tree Comb
@@ -64,8 +65,8 @@ initial = undefined
 
 select :: Population -> Rand Indiv
 select ts = do
-  t1 <- (ts !!) <$> rand (length ts)
-  t2 <- (ts !!) <$> rand (length ts)
+  t1 <- (ts !!) <$> randInt (length ts)
+  t2 <- (ts !!) <$> randInt (length ts)
   return $ if err t1 <= err t2 then t1 else t2
 
 breed :: Population -> Rand Indiv
@@ -82,9 +83,12 @@ nextGen ts ts' | otherwise = do
   then nextGen ts ts'
   else nextGen ts (t' : ts')
 
+best :: Population -> Indiv
+best = head . sortWith err
+
 evolve :: Gen -> Population -> Rand Population
 evolve n ts | n >= maxGen = return ts
-evolve n ts | otherwise = evolve (succ n) =<< nextGen ts []
+evolve n ts | otherwise = evolve (succ n) =<< nextGen ts [best ts]
 
 gp :: Rand Population
 gp = evolve 0 =<< initial
