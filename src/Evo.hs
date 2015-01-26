@@ -8,7 +8,7 @@ import Exp
 import Control.Applicative
 import Control.Monad.State
 import System.Random
-import GHC.Exts ( sortWith )
+import Data.List
 
 ----------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ crossover t1 t2 = do
   z2 <- locate t2 <$> randInt (size t2)
   return $ rootTree (replace (currentTree z2) z1)
 
-type Indiv = Tree Comb
+type Indiv = (Tree Comb , Int)
 type Population = [Indiv]
 
 randIndiv :: Rand Indiv
@@ -67,28 +67,32 @@ select :: Population -> Rand Indiv
 select ts = do
   t1 <- (ts !!) <$> randInt (length ts)
   t2 <- (ts !!) <$> randInt (length ts)
-  return $ if err t1 <= err t2 then t1 else t2
+  return $ if snd t1 <= snd t2 then t1 else t2
 
 breed :: Population -> Rand Indiv
 breed ts = do
-  t1 <- select ts
-  t2 <- select ts
-  crossover t1 t2
+  t1 <- fst <$> select ts
+  t2 <- fst <$> select ts
+  t' <- crossover t1 t2
+  return (t' , err t')
+
+insertIndiv :: Indiv -> Population -> Population
+insertIndiv t ts = insertBy (\x y -> compare (snd x) (snd y)) t ts
+
+tooLarge :: Indiv -> Bool
+tooLarge t = depth (fst t) > maxCrossDepth
 
 nextGen :: Population -> Population -> Rand Population
 nextGen ts ts' | length ts <= length ts' = return ts'
 nextGen ts ts' | otherwise = do
   t' <- breed ts
-  if depth t' > maxCrossDepth
+  if tooLarge t'
   then nextGen ts ts'
-  else nextGen ts (t' : ts')
-
-best :: Population -> Indiv
-best = head . sortWith err
+  else nextGen ts (insertIndiv t' ts')
 
 evolve :: Gen -> Population -> Rand Population
 evolve n ts | n >= maxGen = return ts
-evolve n ts | otherwise = evolve (succ n) =<< nextGen ts [best ts]
+evolve n ts | otherwise = evolve (succ n) =<< nextGen ts [head ts]
 
 gp :: Rand Population
 gp = evolve 0 =<< initial
