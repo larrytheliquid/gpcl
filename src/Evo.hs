@@ -58,11 +58,11 @@ crossover (t1 , t2) = do
 type Indiv = Tree Comb
 type Population = [Indiv]
 
-select :: Population -> Rand (Tree Indiv)
+select :: Population -> Rand Indiv
 select ts = do
   t1 <- (ts !!) <$> rand (length ts)
   t2 <- (ts !!) <$> rand (length ts)
-  undefined
+  return $ if err t1 <= err t2 then t1 else t2
 
 ----------------------------------------------------------------------
 
