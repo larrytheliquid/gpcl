@@ -57,17 +57,17 @@ crossover t1 t2 = do
 type Indiv = (Tree Comb , Int)
 type Population = [Indiv]
 
-randIndiv :: Rand Indiv
-randIndiv = undefined
-
-initial :: Rand Population
-initial = undefined
-
 select :: Population -> Rand Indiv
 select ts = do
   t1 <- (ts !!) <$> randInt (length ts)
   t2 <- (ts !!) <$> randInt (length ts)
   return $ if snd t1 <= snd t2 then t1 else t2
+
+randIndiv :: Rand Indiv
+randIndiv = undefined
+
+initial :: Rand Population
+initial = replicateM popSize randIndiv
 
 breed :: Population -> Rand Indiv
 breed ts = do
