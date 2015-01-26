@@ -12,12 +12,6 @@ import Data.List
 
 ----------------------------------------------------------------------
 
-probA :: Double
-probA = 0.5
-
-probC :: Double
-probC = 0.5 / fromIntegral cardComb
-
 maxInitDepth :: Int
 maxInitDepth = 10
 
@@ -42,16 +36,27 @@ type Rand = State StdGen
 type Gen = Int
 
 randInt :: Int -> Rand Int
-randInt bound = do
+randInt n = do
   s <- get
-  let (r , s') = randomR (0, pred bound) s
+  let (r , s') = randomR (0, pred n) s
   put s'
   return r
 
+randBool :: Rand Bool
+randBool = (0 ==) <$> randInt 2
+
+randElem :: [a] -> Rand a
+randElem xs = (xs !!) <$> randInt (length xs)
+
+randZip :: Tree a -> Rand (Zipper a)
+randZip t = locate t <$> randInt (size t)
+
+----------------------------------------------------------------------
+
 crossover :: Tree a -> Tree a -> Rand (Tree a)
 crossover t1 t2 = do
-  z1 <- locate t1 <$> randInt (size t1)
-  z2 <- locate t2 <$> randInt (size t2)
+  z1 <- randZip t1
+  z2 <- randZip t2
   return $ rootTree (replace (currentTree z2) z1)
 
 type Indiv = (Tree Comb , Int)
@@ -59,12 +64,13 @@ type Population = [Indiv]
 
 select :: Population -> Rand Indiv
 select ts = do
-  t1 <- (ts !!) <$> randInt (length ts)
-  t2 <- (ts !!) <$> randInt (length ts)
+  t1 <- randElem ts
+  t2 <- randElem ts
   return $ if snd t1 <= snd t2 then t1 else t2
 
 randIndiv :: Rand Indiv
 randIndiv = undefined
+  -- n <- randInt 
 
 initial :: Rand Population
 initial = replicateM popSize randIndiv

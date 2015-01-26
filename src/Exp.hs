@@ -11,8 +11,8 @@ data Comb = S | K | I
   deriving (Show,Read,Eq,Ord,Enum,Bounded)
 data Exp = App Exp Exp | Var String | Comb Comb
 
-cardComb :: Int
-cardComb = succ (fromEnum (maxBound :: Comb))
+combs :: [Comb]
+combs = enumFromTo minBound maxBound
 
 toExp :: Tree Comb -> Exp
 toExp = undefined
