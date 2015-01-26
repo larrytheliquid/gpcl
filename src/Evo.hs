@@ -59,21 +59,31 @@ crossover t1 t2 = do
   z2 <- randZip t2
   return $ rootTree (replace (currentTree z2) z1)
 
+randTree :: (Enum a, Bounded a) => Rand (Tree a)
+randTree = do
+  b <- randBool
+  if b
+  then Branch <$> randTree <*> randTree
+  else Leaf <$> randElem enum
+
+----------------------------------------------------------------------
+
 type Indiv = (Tree Comb , Int)
 type Population = [Indiv]
+
+randIndiv :: Rand Indiv
+randIndiv = do
+  t <- randTree
+  return (t , err t)
+
+initial :: Rand Population
+initial = replicateM popSize randIndiv
 
 select :: Population -> Rand Indiv
 select ts = do
   t1 <- randElem ts
   t2 <- randElem ts
   return $ if snd t1 <= snd t2 then t1 else t2
-
-randIndiv :: Rand Indiv
-randIndiv = undefined
-  -- n <- randInt 
-
-initial :: Rand Population
-initial = replicateM popSize randIndiv
 
 breed :: Population -> Rand Indiv
 breed ts = do
