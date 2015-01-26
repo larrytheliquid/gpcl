@@ -82,6 +82,9 @@ insertIndiv t ts = insertBy (\x y -> compare (snd x) (snd y)) t ts
 tooLarge :: Indiv -> Bool
 tooLarge t = depth (fst t) > maxCrossDepth
 
+isSolution :: Indiv -> Bool
+isSolution t = snd t == 0
+
 nextGen :: Population -> Population -> Rand Population
 nextGen ts ts' | length ts <= length ts' = return ts'
 nextGen ts ts' | otherwise = do
@@ -90,11 +93,11 @@ nextGen ts ts' | otherwise = do
   then nextGen ts ts'
   else nextGen ts (insertIndiv t' ts')
 
-evolve :: Gen -> Population -> Rand Population
-evolve n ts | n >= maxGen = return ts
+evolve :: Gen -> Population -> Rand (Gen , Population)
+evolve n ts | n >= maxGen || isSolution (head ts) = return (n , ts)
 evolve n ts | otherwise = evolve (succ n) =<< nextGen ts [head ts]
 
-gp :: Rand Population
+gp :: Rand (Gen , Population)
 gp = evolve 0 =<< initial
 
 ----------------------------------------------------------------------
