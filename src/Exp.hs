@@ -1,3 +1,7 @@
+{-# LANGUAGE
+    ViewPatterns
+  #-}
+
 module Exp where
 import Tree
 
@@ -32,23 +36,26 @@ _T = _S :@: (_K :@: (_S :@: _I)) :@: _K
 _T' :: Exp
 _T' = _S :@: (_K :@: (_S :@: _I)) :@: (_S :@: (_K :@: _K) :@: _I)
 
+-- would loop
+-- norm ((_S :@: Var "x" :@: Var "y" :@: Var "z") :@: Var "a")
+
 ----------------------------------------------------------------------
 
 toExp :: Tree Comb -> Exp
 toExp (Branch l r) = toExp l :@: toExp r
 toExp (Leaf c) = Comb c
 
-norm' :: Exp -> Exp
-norm' (Comb S :@: x :@: y :@: z) = norm' (x :@: z :@: (y :@: z))
-norm' (Comb K :@: x :@: _) = norm' x
-norm' (f :@:  x) = norm' f :@: norm' x
-norm' x = x
+rewrite :: Exp -> Exp
+rewrite (Comb S :@: (rewrite -> x) :@: (rewrite -> y) :@: (rewrite -> z)) = x :@: z :@: (y :@: z)
+rewrite (Comb K :@: (rewrite -> x) :@: _) = x
+rewrite ((rewrite -> f) :@: (rewrite -> x)) = f :@: x
+rewrite x = x
 
 norm :: Exp -> Exp
 norm x = if x' == x'' then x' else norm x''
   where
-  x'  = norm' x
-  x'' = norm' x'
+  x'  = rewrite x
+  x'' = rewrite x'
 
 ----------------------------------------------------------------------
 
