@@ -56,9 +56,10 @@ norm x@(Var  _) = x
 
 norm (f@(Var _) :@: x) = f :@: norm x
 
-norm (f@(_ :@: _) :@: x) = case norm f of
-  f'@(_ :@: _) -> norm (f' :@: x)
-  f' -> norm (f' :@: norm x)
+norm ((norm -> f) :@: (norm -> x)) = norm (f :@: x)
+-- norm (f@(_ :@: _) :@: x) = case norm f of
+--   f'@(_ :@: _) -> norm (f' :@: x)
+--   f' -> norm (f' :@: norm x)
 
 ----------------------------------------------------------------------
 
