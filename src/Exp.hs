@@ -22,11 +22,9 @@ toExp (Branch l r) = toExp l :@: toExp r
 toExp (Leaf c) = Comb c
 
 norm :: Exp -> Exp
-norm (Comb S :@: x :@: y :@: z) = norm (x :@: z :@: (y :@: z))
-norm (Comb K :@: x :@: _) = norm x
--- norm (Comb S :@: (norm -> x) :@: (norm -> y) :@: (norm -> z)) = norm (x :@: z :@: (y :@: z))
--- norm (Comb K :@: (norm -> x) :@: _) = x
-norm (f :@:  x) = norm f :@: norm x
+norm (Comb S :@: (norm -> x) :@: (norm -> y) :@: (norm -> z)) = norm (x :@: z :@: (y :@: z))
+norm (Comb K :@: (norm -> x) :@: _) = x
+norm ((norm -> f) :@:  (norm -> x)) = f :@: x
 norm x@(Comb _) = x
 norm x@(Var  _) = x
 
