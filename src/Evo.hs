@@ -59,16 +59,18 @@ crossover t1 t2 = do
   z2 <- randZip t2
   return $ rootTree (replace (currentTree z2) z1)
 
--- TODO max depth
-randTree :: (Enum a, Bounded a) => Rand (Tree a)
-randTree = do
+randTree' :: (Enum a, Bounded a) => Int -> Rand (Tree a)
+randTree' n = do
   b <- randBool
-  if b
+  if b || n <= 0
   then Leaf <$> randElem enum
-  else Branch <$> randTree <*> randTree
+  else Branch <$> randTree' (pred n) <*> randTree' (pred n)
+
+randTree :: (Enum a, Bounded a) => Rand (Tree a)
+randTree = randTree' maxInitDepth
 
 -- map depth (fst (runState (replicateM 5 (randTree :: Rand (Tree Comb))) (mkStdGen 7)))
--- [1,26,2,0,0]
+-- [1,10,0,2,2]
 
 ----------------------------------------------------------------------
 
