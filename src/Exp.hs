@@ -1,3 +1,7 @@
+{-# LANGUAGE
+    ViewPatterns
+  #-}
+
 module Exp where
 import Tree
 
@@ -38,18 +42,20 @@ toExp :: Tree Comb -> Exp
 toExp (Branch l r) = toExp l :@: toExp r
 toExp (Leaf c) = Comb c
 
-norm' :: Exp -> Exp
-norm' (Comb S :@: x :@: y :@: z) = norm' (x :@: z :@: (y :@: z))
-norm' (Comb K :@: x :@: _) = norm' x
-norm' (f :@:  x) = norm' f :@: norm' x
-norm' x@(Comb _) = x
-norm' x@(Var  _) = x
-
 norm :: Exp -> Exp
-norm x = if x' == x'' then x' else norm x''
-  where
-  x'  = norm' x
-  x'' = norm' x'
+
+norm (Comb S :@: (norm -> x) :@: (norm -> y) :@: (norm -> z)) = norm (x :@: z :@: (y :@: z))
+norm (Comb S :@: (norm -> x) :@: (norm -> y)) = _S :@: x :@: y
+norm (Comb S :@: (norm -> x)) = _S :@: x
+
+norm (Comb K :@: (norm -> x) :@: _) = x
+norm (Comb K :@: (norm -> x)) = _K :@: x
+
+norm x@(Comb _) = x
+norm x@(Var  _) = x
+
+norm (f@(Var _) :@: x) = f :@: norm x
+norm ((norm -> f) :@: (norm -> x)) = norm (f :@: x)
 
 ----------------------------------------------------------------------
 
