@@ -24,6 +24,6 @@ score :: Exp -> Int
 score = undefined
 
 err :: Tree a -> Int
-err = undefined
+err t = 7
 
 ----------------------------------------------------------------------
