@@ -13,16 +13,7 @@ data Exp = Exp :@: Exp | Var String | Comb Comb
 enum :: (Enum a, Bounded a) => [a]
 enum = enumFromTo minBound maxBound
 
-toExp :: Tree Comb -> Exp
-toExp (Branch l r) = toExp l :@: toExp r
-toExp (Leaf c) = Comb c
-
-norm :: Exp -> Exp
-norm (Comb S :@: x :@: y :@: z) = norm (x :@: z :@: (y :@: z))
-norm (Comb K :@: x :@: _) = norm x
-norm (f :@:  x) = norm f :@: norm x
-norm x@(Comb _) = x
-norm x@(Var  _) = x
+----------------------------------------------------------------------
 
 _S :: Exp
 _S = Comb S
@@ -39,6 +30,20 @@ _T = _S :@: (_K :@: (_S :@: _I)) :@: _K
 _T' :: Exp
 _T' = _S :@: (_K :@: (_S :@: _I)) :@: (_S :@: (_K :@: _K) :@: _I)
 
+----------------------------------------------------------------------
+
+toExp :: Tree Comb -> Exp
+toExp (Branch l r) = toExp l :@: toExp r
+toExp (Leaf c) = Comb c
+
+norm :: Exp -> Exp
+norm (Comb S :@: x :@: y :@: z) = norm (x :@: z :@: (y :@: z))
+norm (Comb K :@: x :@: _) = norm x
+norm (f :@:  x) = norm f :@: norm x
+norm x@(Comb _) = x
+norm x@(Var  _) = x
+
+----------------------------------------------------------------------
 
 score :: Exp -> Int
 score = undefined
