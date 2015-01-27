@@ -27,9 +27,6 @@ popSize = 1000
 maxGen :: Int
 maxGen = 50
 
-eg :: Tree Char
-eg = Branch (Branch (Leaf 'a') (Branch (Leaf 'b') (Leaf 'c'))) (Leaf 'd')
-
 ----------------------------------------------------------------------
 
 type Rand = State StdGen
@@ -111,10 +108,9 @@ nextGen :: Population -> Population -> Rand Population
 nextGen ts ts' | length ts <= length ts' = return ts'
 nextGen ts ts' | otherwise = do
   t' <- breed ts
-  nextGen ts (insertIndiv t' ts')
-  -- if tooLarge t'
-  -- then nextGen ts ts'
-  -- else nextGen ts (insertIndiv t' ts')
+  if tooLarge t'
+  then nextGen ts ts'
+  else nextGen ts (insertIndiv t' ts')
 
 evolve :: Gen -> Population -> Rand (Gen , Population)
 evolve n ts | n >= maxGen || isSolution (head ts) = return (n , ts)

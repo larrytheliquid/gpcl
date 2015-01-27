@@ -58,10 +58,13 @@ goRoot :: Zipper a -> Zipper a
 goRoot z | isRoot z = z
 goRoot z | otherwise = goRoot (goUp z)
 
-rootTree :: Zipper a -> Tree a
-rootTree = fst . goRoot
-
 currentTree :: Zipper a -> Tree a
-currentTree = fst . goRoot
+currentTree = fst
+
+rootTree :: Zipper a -> Tree a
+rootTree = currentTree . goRoot
+
+eg :: Tree Char
+eg = Branch (Branch (Leaf 'a') (Branch (Leaf 'b') (Leaf 'c'))) (Leaf 'd')
 
 ----------------------------------------------------------------------
