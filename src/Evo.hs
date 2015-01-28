@@ -15,10 +15,10 @@ import Data.Bifunctor
 ----------------------------------------------------------------------
 
 maxInitDepth :: Int
-maxInitDepth = 10
+maxInitDepth = 20
 
 maxCrossDepth :: Int
-maxCrossDepth = 17
+maxCrossDepth = 27
 
 popSize :: Int
 popSize = 1000
@@ -142,9 +142,14 @@ runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 -- unsolved
 -- _C -- bimap id (map snd) $ runEvo (Var "f" :@: Var "y" :@: Var "x") ["f", "x", "y"] 199
 -- _B1 -- bimap id (map snd) $ runEvo (Var "a" :@: (Var "b" :@: Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
+-- _Q -- bimap id (map snd) $ runEvo (Var "b" :@: (Var "a" :@: Var "c")) ["a", "b", "c"] 199
+-- _Q3 -- bimap id (map snd) $ runEvo (Var "c" :@: (Var "a" :@: Var "b")) ["a", "b", "c"] 199
 
 -- solved at init=20, cross=27, struct=20
+-- _M -- bimap id (map snd) $ runEvo (Var "a" :@: Var "a") ["a"] 199
+-- _M2 -- bimap id (map snd) $ runEvo (Var "a" :@: Var "b" :@: (Var "a" :@: Var "b")) ["a", "b"] 199
 -- _D -- bimap id (map snd) $ runEvo (Var "a" :@: Var "b" :@: (Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
+      -- bimap id (map (size . fst)) $ runEvo (Var "a" :@: Var "b" :@: (Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
 
 
 
