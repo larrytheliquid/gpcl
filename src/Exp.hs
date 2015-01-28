@@ -1,7 +1,3 @@
-{-# LANGUAGE
-    ViewPatterns
-  #-}
-
 module Exp where
 import Tree
 
@@ -51,6 +47,9 @@ _T = _S :@: (_K :@: (_S :@: _I)) :@: _K
 _T' :: Exp
 _T' = _S :@: (_K :@: (_S :@: _I)) :@: (_S :@: (_K :@: _K) :@: _I)
 
+_O :: Exp
+_O = _S :@: _I :@: _I :@: (_S :@: _I :@: _I)
+
 -- would loop
 -- norm ((_S :@: Var "x" :@: Var "y" :@: Var "z") :@: Var "a")
 
@@ -60,17 +59,26 @@ toExp :: Tree Comb -> Exp
 toExp (Branch l r) = toExp l :@: toExp r
 toExp (Leaf c) = Comb c
 
-rewrite :: Exp -> Exp
-rewrite (Comb S :@: (rewrite -> x) :@: (rewrite -> y) :@: (rewrite -> z)) = x :@: z :@: (y :@: z)
-rewrite (Comb K :@: (rewrite -> x) :@: _) = x
-rewrite ((rewrite -> f) :@: (rewrite -> x)) = f :@: x
-rewrite x = x
+normTo :: Int -> Exp -> Exp
+normTo n x | n <= 0 = x
+normTo n (Comb S :@: x :@: y :@: z) = normTo (pred n) $ x :@: z :@: (y :@: z)
+normTo n (Comb K :@: x :@: _) = normTo (pred n) x
+normTo n (x :@: y) = if x == x' && y == y' then xy' else normTo (pred n) xy'
+  where
+  xy' = x' :@: y'
+  x' = normTo (pred n) x
+  y' = normTo (pred n) y
+normTo n x = x
+
+-- rewrites :: Int -> Exp -> Exp
+-- rewrites n x | n <= 0 = x
+-- rewrites n x = if x' == x'' then x' else rewrites (pred n) x''
+--   where
+--   x'  = rewrite x
+--   x'' = rewrite x'
 
 norm :: Exp -> Exp
-norm x = if x' == x'' then x' else norm x''
-  where
-  x'  = rewrite x
-  x'' = rewrite x'
+norm = normTo 1000
 
 ----------------------------------------------------------------------
 
