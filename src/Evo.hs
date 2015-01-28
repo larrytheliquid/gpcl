@@ -116,6 +116,7 @@ nextGen ts ts' | otherwise = do
   then nextGen ts ts'
   else nextGen ts (insertIndiv t' ts')
 
+-- TODO 30% elitism
 evolve :: Gen -> Population -> Evo (Gen , Population)
 evolve n ts | n >= maxGen || isSolution (head ts) = return (n , ts)
 evolve n ts | otherwise = evolve (succ n) =<< nextGen ts [head ts]
@@ -150,6 +151,9 @@ runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 -- _M2 -- bimap id (map snd) $ runEvo (Var "a" :@: Var "b" :@: (Var "a" :@: Var "b")) ["a", "b"] 199
 -- _D -- bimap id (map snd) $ runEvo (Var "a" :@: Var "b" :@: (Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
       -- bimap id (map (size . fst)) $ runEvo (Var "a" :@: Var "b" :@: (Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
+
+
+-- _U -- bimap id (map snd) $ runEvo (Var "y" :@: (Var "x" :@: Var "x" :@: Var "y")) ["x", "y"] 199
 
 
 
