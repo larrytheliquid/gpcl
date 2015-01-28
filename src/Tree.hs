@@ -20,6 +20,10 @@ size :: Tree a -> Int
 size (Leaf _) = 1
 size (Branch l r) = 1 + size l + size r
 
+leaves :: Tree a -> Int
+leaves (Leaf _) = 1
+leaves (Branch l r) = leaves l + leaves r
+
 root :: Tree a -> Zipper a
 root t = (t , [])
 

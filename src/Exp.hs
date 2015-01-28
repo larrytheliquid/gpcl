@@ -7,6 +7,11 @@ import Tree
 
 ----------------------------------------------------------------------
 
+minStruture :: Int
+minStruture = 10
+
+----------------------------------------------------------------------
+
 data Comb = S | K
   deriving (Show,Read,Eq,Ord,Enum,Bounded)
 
@@ -16,6 +21,16 @@ data Exp = Exp :@: Exp | Var String | Comb Comb
 
 enum :: (Enum a, Bounded a) => [a]
 enum = enumFromTo minBound maxBound
+
+nodes :: Exp -> Int
+nodes (Var _) = 1
+nodes (Comb _) = 1
+nodes (x :@: y) = 1 + nodes x + nodes y
+
+combs :: Exp -> Int
+combs (Var _) = 0
+combs (Comb _) = 1
+combs (x :@: y) = nodes x + nodes y
 
 ----------------------------------------------------------------------
 
@@ -59,10 +74,18 @@ norm x = if x' == x'' then x' else norm x''
 
 ----------------------------------------------------------------------
 
-score :: Exp -> Int
-score = undefined
+diff :: Exp -> Exp -> Int
+diff (Var  x) (Var  y) | x == y = 0
+diff (Comb x) (Comb y) | x == y = 0
+diff (x1 :@: y1) (x2 :@: y2) = diff x1 x2 + diff y1 y2
+diff x y = succ (abs (nodes x - nodes y))
 
-err :: Tree a -> Int
-err t = 7
+score :: Tree Comb -> Exp -> Int
+score t e = diff lhs rhs * weight
+  where
+  lhs = norm (toExp t)
+  rhs = norm e
+  structure = leaves t
+  weight = if structure >= minStruture then 1 else minStruture - succ structure
 
 ----------------------------------------------------------------------

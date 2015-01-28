@@ -18,9 +18,6 @@ maxInitDepth = 10
 maxCrossDepth :: Int
 maxCrossDepth = 17
 
-minStruture :: Int
-minStruture = 10
-
 popSize :: Int
 popSize = 1000
 
@@ -71,6 +68,7 @@ randTree = randTree' maxInitDepth
 
 ----------------------------------------------------------------------
 
+type Target = Exp
 type Indiv = (Tree Comb , Int)
 type Population = [Indiv]
 
