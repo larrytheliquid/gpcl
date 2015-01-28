@@ -83,11 +83,13 @@ diff x y = succ (abs (nodes x - nodes y))
 -- TODO list of arguments for tree to be applied to
 score :: Tree Comb -> Exp -> Int
 score _ _ = 7
--- score t e = diff lhs rhs * weight
---   where
---   lhs = norm (toExp t)
---   rhs = norm e
---   structure = leaves t
---   weight = if structure >= minStruture then 1 else minStruture - succ structure
+
+score' :: Tree Comb -> Exp -> Int
+score' t e = diff lhs rhs * weight
+  where
+  lhs = norm (toExp t)
+  rhs = norm e
+  structure = leaves t
+  weight = if structure >= minStruture then 1 else minStruture - succ structure
 
 ----------------------------------------------------------------------
