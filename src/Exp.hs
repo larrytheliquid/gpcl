@@ -1,5 +1,6 @@
 module Exp where
 import Tree
+import Data.Maybe
 
 ----------------------------------------------------------------------
 
@@ -59,26 +60,23 @@ toExp :: Tree Comb -> Exp
 toExp (Branch l r) = toExp l :@: toExp r
 toExp (Leaf c) = Comb c
 
-normTo :: Int -> Exp -> Exp
-normTo n x | n <= 0 = x
-normTo n (Comb S :@: x :@: y :@: z) = normTo (pred n) $ x :@: z :@: (y :@: z)
-normTo n (Comb K :@: x :@: _) = normTo (pred n) x
-normTo n (x :@: y) = if x == x' && y == y' then xy' else normTo (pred n) xy'
-  where
-  xy' = x' :@: y'
-  x' = normTo (pred n) x
-  y' = normTo (pred n) y
-normTo n x = x
+step :: Exp -> Maybe Exp
+step (Comb S :@: x :@: y :@: z) = Just $ x :@: z :@: (y :@: z)
+step (Comb K :@: x :@: _) = Just x
+step x@(Var _) = Just x
+step x@(Comb _) = Just x
+step (x :@: y) = case (step x , step y) of
+  (Just x' , Just y') -> Just (x' :@: y')
+  (Just x' , Nothing) -> Just (x' :@: y)
+  (Nothing , Just y') -> Just (x :@: y')
+  (Nothing , Nothing) -> Nothing
 
--- rewrites :: Int -> Exp -> Exp
--- rewrites n x | n <= 0 = x
--- rewrites n x = if x' == x'' then x' else rewrites (pred n) x''
---   where
---   x'  = rewrite x
---   x'' = rewrite x'
+stepTo :: Int -> Exp -> Exp
+stepTo 0 x = x
+stepTo n x = maybe x (stepTo (pred n)) (step x)
 
 norm :: Exp -> Exp
-norm = normTo 1000
+norm = stepTo 20
 
 ----------------------------------------------------------------------
 
