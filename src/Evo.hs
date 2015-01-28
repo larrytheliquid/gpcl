@@ -49,6 +49,11 @@ randZip t = locate t <$> randInt (size t)
 goal :: Evo Exp
 goal = ask
 
+indiv :: Tree Comb -> Evo Indiv
+indiv t = do
+  e <- goal
+  return (t , score t e)
+
 ----------------------------------------------------------------------
 
 crossover :: Tree a -> Tree a -> Evo (Tree a)
@@ -78,8 +83,7 @@ type Population = [Indiv]
 randIndiv :: Evo Indiv
 randIndiv = do
   t <- randTree
-  e <- goal
-  return (t , score t e)
+  indiv t
 
 initial :: Evo Population
 initial = replicateM popSize randIndiv
@@ -95,8 +99,7 @@ breed ts = do
   t1 <- fst <$> select ts
   t2 <- fst <$> select ts
   t' <- crossover t1 t2
-  e <- goal
-  return (t' , score t' e)
+  indiv t'
 
 insertIndiv :: Indiv -> Population -> Population
 insertIndiv t ts = insertBy (\x y -> compare (snd x) (snd y)) t ts
@@ -125,9 +128,7 @@ evo = evolve 0 =<< initial
 runEvo :: Exp -> Int -> (Gen , Population)
 runEvo e i = fst $ runState (runReaderT evo e) (mkStdGen i)
 
--- map (depth . fst) (snd (fst (runReader _K (runState gp (mkStdGen 199)))))
-
--- map (depth . fst) (snd (fst (runState gp (mkStdGen 199))))
+-- sort $ map (depth . fst) . snd $ runEvo _K 199
 -- (depth . fst . head) (snd (fst (runState gp (mkStdGen 199))))
 
 ----------------------------------------------------------------------
