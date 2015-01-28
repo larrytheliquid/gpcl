@@ -10,6 +10,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import System.Random
 import Data.List
+import Data.Bifunctor
 
 ----------------------------------------------------------------------
 
@@ -27,7 +28,7 @@ maxGen = 50
 
 ----------------------------------------------------------------------
 
-type Evo = ReaderT Exp (State StdGen)
+type Evo = ReaderT (Exp , Args) (State StdGen)
 type Gen = Int
 
 randInt :: Int -> Evo Int
@@ -46,13 +47,10 @@ randElem xs = (xs !!) <$> randInt (length xs)
 randZip :: Tree a -> Evo (Zipper a)
 randZip t = locate t <$> randInt (size t)
 
-goal :: Evo Exp
-goal = ask
-
 mkIndiv :: Tree Comb -> Evo Indiv
 mkIndiv t = do
-  e <- goal
-  return (t , score t e)
+  (e , args) <- ask
+  return (t , score t e args)
 
 ----------------------------------------------------------------------
 
@@ -125,10 +123,13 @@ evolve n ts | otherwise = evolve (succ n) =<< nextGen ts [head ts]
 evo :: Evo (Gen , Population)
 evo = evolve 0 =<< initial
 
-runEvo :: Exp -> Int -> (Gen , Population)
-runEvo e i = fst $ runState (runReaderT evo e) (mkStdGen i)
+runEvo :: Exp -> Args -> Int -> (Gen , Population)
+runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 
--- map snd . snd $ runEvo _K 199
+-- bimap id (map snd) $ runEvo _K ["a", "b"] 199
+-- bimap id (map snd) $ runEvo _I ["a"] 199
+-- bimap id (map snd) $ runEvo _T ["f" , "x"] 199
+
 -- map (nodes . norm . toExp . fst) . snd $ runEvo _K 19
 -- sort $ map (flip score' _K . fst) . snd $ runEvo _K 199
 -- sort $ map (depth . fst) . snd $ runEvo _K 199

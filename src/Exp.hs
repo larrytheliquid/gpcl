@@ -29,6 +29,10 @@ combs (Var _) = 0
 combs (Comb _) = 1
 combs (x :@: y) = nodes x + nodes y
 
+type Args = [String]
+apply :: Exp -> Args -> Exp
+apply = foldl (\f x -> f :@: Var x)
+
 ----------------------------------------------------------------------
 
 _S :: Exp
@@ -86,14 +90,13 @@ diff (Comb x) (Comb y) | x == y = 0
 diff (x1 :@: y1) (x2 :@: y2) = diff x1 x2 + diff y1 y2
 diff x y = succ (abs (nodes x - nodes y))
 
--- TODO list of arguments for tree to be applied to
 -- TODO only norm rhs once
-score :: Tree Comb -> Exp -> Int
+score :: Tree Comb -> Exp -> Args -> Int
 -- score t e = nodes (norm (toExp t))
-score t e = diff lhs rhs * weight
+score t e args = diff lhs rhs * weight
   where
-  lhs = norm (toExp t)
-  rhs = norm e
+  lhs = norm (toExp t `apply` args)
+  rhs = norm (e `apply` args)
   structure = leaves t
   weight = if structure >= minStruture then 1 else minStruture - structure + 1
 
