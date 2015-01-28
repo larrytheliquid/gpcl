@@ -143,6 +143,7 @@ runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 -- _C -- bimap id (map snd) $ runEvo (Var "f" :@: Var "y" :@: Var "x") ["f", "x", "y"] 199
 -- _B1 -- bimap id (map snd) $ runEvo (Var "a" :@: (Var "b" :@: Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
 
+-- solved at init=20, cross=27, struct=20
 -- _D -- bimap id (map snd) $ runEvo (Var "a" :@: Var "b" :@: (Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
 
 
