@@ -129,6 +129,7 @@ runEvo :: Exp -> Int -> (Gen , Population)
 runEvo e i = fst $ runState (runReaderT evo e) (mkStdGen i)
 
 -- map snd . snd $ runEvo _K 199
+-- map (nodes . norm . toExp . fst) . snd $ runEvo _K 19
 -- sort $ map (flip score' _K . fst) . snd $ runEvo _K 199
 -- sort $ map (depth . fst) . snd $ runEvo _K 199
 -- (depth . fst . head) . snd $ runEvo _K 199

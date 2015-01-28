@@ -78,15 +78,17 @@ diff :: Exp -> Exp -> Int
 diff (Var  x) (Var  y) | x == y = 0
 diff (Comb x) (Comb y) | x == y = 0
 diff (x1 :@: y1) (x2 :@: y2) = diff x1 x2 + diff y1 y2
+-- TODO check if succ is inside or outside minus
 diff x y = succ (abs (nodes x - nodes y))
 
 -- TODO list of arguments for tree to be applied to
 score :: Tree Comb -> Exp -> Int
-score t e = diff lhs rhs * weight
-  where
-  lhs = toExp t
-  rhs = norm e
-  structure = leaves t
-  weight = if structure >= minStruture then 1 else minStruture - succ structure
+score t e = nodes (norm (toExp t))
+-- score t e = diff lhs rhs * weight
+--   where
+--   lhs = toExp t
+--   rhs = norm e
+--   structure = leaves t
+--   weight = if structure >= minStruture then 1 else minStruture - succ structure
 
 ----------------------------------------------------------------------
