@@ -50,7 +50,7 @@ randZip t = locate t <$> randInt (size t)
 mkIndiv :: Tree Comb -> Evo Indiv
 mkIndiv t = do
   (e , args) <- ask
-  return (t , score t e args)
+  return (t , score t args e)
 
 ----------------------------------------------------------------------
 
@@ -128,7 +128,24 @@ runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 
 -- bimap id (map snd) $ runEvo _K ["a", "b"] 199
 -- bimap id (map snd) $ runEvo _I ["a"] 199
--- bimap id (map snd) $ runEvo _T ["f" , "x"] 199
+-- bimap id (map snd) $ runEvo _T ["x" , "f"] 199
+
+-- http://www.angelfire.com/tx4/cus/combinator/birds.html
+
+-- solved
+-- _K -- bimap id (map snd) $ runEvo (Var "x") ["x", "y"] 199
+-- _I -- bimap id (map snd) $ runEvo (Var "x") ["x"] 199
+-- _T -- bimap id (map snd) $ runEvo (Var "f" :@: Var "x") ["x", "f"] 199
+-- _B -- bimap id (map snd) $ runEvo (Var "f" :@: (Var "g" :@: Var "x")) ["f", "g", "x"] 199
+-- _W -- bimap id (map snd) $ runEvo (Var "f" :@: Var "x" :@: Var "x") ["f", "x"] 199
+
+-- unsolved
+-- _C -- bimap id (map snd) $ runEvo (Var "f" :@: Var "y" :@: Var "x") ["f", "x", "y"] 199
+-- _B1 -- bimap id (map snd) $ runEvo (Var "a" :@: (Var "b" :@: Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
+
+-- _D -- bimap id (map snd) $ runEvo (Var "a" :@: Var "b" :@: (Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
+
+
 
 -- map (nodes . norm . toExp . fst) . snd $ runEvo _K 19
 -- sort $ map (flip score' _K . fst) . snd $ runEvo _K 199

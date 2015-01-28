@@ -91,12 +91,11 @@ diff (x1 :@: y1) (x2 :@: y2) = diff x1 x2 + diff y1 y2
 diff x y = succ (abs (nodes x - nodes y))
 
 -- TODO only norm rhs once
-score :: Tree Comb -> Exp -> Args -> Int
--- score t e = nodes (norm (toExp t))
-score t e args = diff lhs rhs * weight
+score :: Tree Comb -> Args -> Exp -> Int
+score t args e = diff lhs rhs * weight
   where
   lhs = norm (toExp t `apply` args)
-  rhs = norm (e `apply` args)
+  rhs = norm e
   structure = leaves t
   weight = if structure >= minStruture then 1 else minStruture - structure + 1
 
