@@ -1,4 +1,4 @@
-\title{Higher-Order Genetic Programming \\for Semantic Unification}
+\title{Higher-Order Genetic Programming \\for Semantic Unifiers}
 \author{
   Larry Diehl \\
   Department of Computer Science\\
@@ -18,12 +18,14 @@
 \begin{abstract}
 Typical genetic programming (GP) synthesizes programs from a pre-existing
 set of first-order operators, usually operations of some abstract
-datatype. Our project will use GP to synthesize higher-order programs
+datatype. My project will use GP to synthesize higher-order programs
 (functions which may take other functions as arguments). 
 
-The problems solved by our system will be finding solutions to
-variables appearing in equational constraints, i.e. unification
-problems. While syntactic unification (where solutions are
+The problems solved by my system will be equations prefixed with
+existential quantifiers, followed by universal quantifiers (without any
+further quantification). The solutions will be assignments to
+variables appearing in equational constraints, i.e. unifiers for
+unification problems. While syntactic unification (where solutions are
 first-order terms that do not induce computation) is decidable,
 semantic unification (where solutions can induce computation, and can
 be lambda-terms) is not, making it a desirable candidate
@@ -49,16 +51,16 @@ dependently typed programming languages as a feature to allow the user
 to omit arguments that can be implicitly inferred by the language.
 However, because higher-order unification is undecidable, dependently
 typed language usually constrain their solutions to some decidable
-sub-domain. I wish to explore using GP for higher-order unification,
+sub-domain. I wish to explore using GP to solve for higher-order unifiers,
 so one day dependently typed languages may use the techniques to infer
-more complex implicit arguments for users.
-
-%% \paragraph{foo}
+more complex implicit arguments for users. \textbf{Importantly, I am using GP
+to find unifiers for unification problems, but am not forcing GP to
+use the typical unification algorithm to do this.}
 
 \section{Design Requirements}
 
-Implementation of a system that can solve semantic higher-order unification
-problems using Genetic Programming (GP). Using genetic programming to
+Implementation of a system that can solve for semantic higher-order unifiers
+using Genetic Programming (GP). Using genetic programming to
 solve for higher-order programs poses several technical challenges.
 Functions (lambda-terms) need to deal with variable binding and
 function application, which means significant complexity in the
@@ -113,7 +115,8 @@ Maude system.
 \section{Plan for Testing}
 
 I will test the algorithm against the dataset used by Fuchs, namely a
-dataset of a competing automated theorem proving tool (OTTER).
+public dataset of automated theorem proving problems called
+``Thousands of Problems for Theorem Provers'' (TPTP).
 Additionally, as mentioned I will compare the first-order GP boolean
 and number problems to higher-order GP.
 
@@ -126,8 +129,8 @@ a confluence checker. If it does, it's probably easier to directly use
 a term rewriting system / programming language such as Maude.
 
 I'm uncertain whether Fuchs' algorithm scales to using
-multiple variables and reused variables, which would be necessary in a
-real unification system. I think it should be okay, since fitness is
+multiple variables and reused variables, which would be necessary to
+solve harder unification problems. I think it should be okay, since fitness is
 just calculated by evaluating the substituted candidate term and doing
 a structural similarity check of both sides of the reduced equation.
 
