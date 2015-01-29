@@ -1,6 +1,12 @@
+{-# LANGUAGE
+    OverloadedStrings
+  #-}
+
+
 module Exp where
 import Tree
 import Data.Maybe
+import Data.String
 
 ----------------------------------------------------------------------
 
@@ -16,8 +22,17 @@ infixl 5 :@:
 data Exp = Exp :@: Exp | Var String | Comb Comb
   deriving (Show,Read,Eq)
 
+----------------------------------------------------------------------
+
+instance IsString Exp where
+  fromString = Var
+
+----------------------------------------------------------------------
+
 enum :: (Enum a, Bounded a) => [a]
 enum = enumFromTo minBound maxBound
+
+----------------------------------------------------------------------
 
 nodes :: Exp -> Int
 nodes (Var _) = 1
@@ -28,6 +43,8 @@ combs :: Exp -> Int
 combs (Var _) = 0
 combs (Comb _) = 1
 combs (x :@: y) = nodes x + nodes y
+
+----------------------------------------------------------------------
 
 type Args = [String]
 apply :: Exp -> Args -> Exp

@@ -1,5 +1,6 @@
 {-# LANGUAGE
     ViewPatterns
+  , OverloadedStrings
   #-}
 
 module Evo where
@@ -132,38 +133,31 @@ evo = evolve 0 =<< initial
 runEvo :: Exp -> Args -> Int -> (Gen , Population)
 runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 
--- bimap id (map snd) $ runEvo _K ["a", "b"] 199
--- bimap id (map snd) $ runEvo _I ["a"] 199
--- bimap id (map snd) $ runEvo _T ["x" , "f"] 199
+infix 2 #
+(#) :: String -> Exp -> (Gen , [Int])
+args # e = bimap id (map snd) $ runEvo e (map show args) 199
+
+----------------------------------------------------------------------
 
 -- http://www.angelfire.com/tx4/cus/combinator/birds.html
 
 -- solved
--- _K -- bimap id (map snd) $ runEvo (Var "x") ["x", "y"] 199
--- _I -- bimap id (map snd) $ runEvo (Var "x") ["x"] 199
--- _T -- bimap id (map snd) $ runEvo (Var "f" :@: Var "x") ["x", "f"] 199
--- _B -- bimap id (map snd) $ runEvo (Var "f" :@: (Var "g" :@: Var "x")) ["f", "g", "x"] 199
--- _W -- bimap id (map snd) $ runEvo (Var "f" :@: Var "x" :@: Var "x") ["f", "x"] 199
-
--- _M -- bimap id (map snd) $ runEvo (Var "a" :@: Var "a") ["a"] 199
--- _M2 -- bimap id (map snd) $ runEvo (Var "a" :@: Var "b" :@: (Var "a" :@: Var "b")) ["a", "b"] 199
--- _D -- bimap id (map snd) $ runEvo (Var "a" :@: Var "b" :@: (Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
-      -- bimap id (map (size . fst)) $ runEvo (Var "a" :@: Var "b" :@: (Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
--- _Q3 -- bimap id (map snd) $ runEvo (Var "c" :@: (Var "a" :@: Var "b")) ["a", "b", "c"] 199
+_K  = "ab"   # "a"
+_I  = "a"    # "a"
+_T  = "ab"   # "b" :@: "a"
+_B  = "abc"  # "a" :@: ("b" :@: "c")
+_W  = "ab"   # "a" :@: ("b" :@: "b")
+             
+_M  = "a"    # "a" :@: "a"
+_M2 = "ab"   # "a" :@: "b" :@: ("a" :@: "b")
+_D  = "abcd" # "a" :@: "b" :@: ("c" :@: "d")
+_Q3 = "abc"  # "c" :@: ("a" :@: "b")
 
 -- unsolved
--- _C -- bimap id (map snd) $ runEvo (Var "f" :@: Var "y" :@: Var "x") ["f", "x", "y"] 199
--- _B1 -- bimap id (map snd) $ runEvo (Var "a" :@: (Var "b" :@: Var "c" :@: Var "d")) ["a", "b", "c", "d"] 199
--- _Q -- bimap id (map snd) $ runEvo (Var "b" :@: (Var "a" :@: Var "c")) ["a", "b", "c"] 199
-
--- _U -- bimap id (map snd) $ runEvo (Var "y" :@: (Var "x" :@: Var "x" :@: Var "y")) ["x", "y"] 199
-
-
-
--- map (nodes . norm . toExp . fst) . snd $ runEvo _K 19
--- sort $ map (flip score' _K . fst) . snd $ runEvo _K 199
--- sort $ map (depth . fst) . snd $ runEvo _K 199
--- (depth . fst . head) . snd $ runEvo _K 199
+_C  = "abc"  # "a" :@: "c" :@: "b"
+_B1 = "abcd" # "a" :@: ("b" :@: "c" :@: "d")
+_Q  = "abc"  # "b" :@: ("a" :@: "c")
+_U  = "ab"   # "b" :@: ("a" :@: "a" :@: "b")
 
 ----------------------------------------------------------------------
 
