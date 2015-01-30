@@ -1,2 +1,54 @@
-List of combinator problems
-http://www.angelfire.com/tx4/cus/combinator/birds.html
+%% List of combinator problems
+%% http://www.angelfire.com/tx4/cus/combinator/birds.html
+
+%% implemented algo, used tournament selection from gp lit
+%% need to implement their selection
+%% tested some problems and experimented with parameter settings
+%% need to test more, at different random variable seeds
+
+\title{\textbf{Week 2 Report}\\Higher-Order Genetic Programming \\for Semantic Unifiers}
+
+\author{Larry Diehl}
+\date{\today}
+
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[hscale=0.7,vscale=0.8]{geometry}
+
+\begin{document}
+
+\maketitle
+
+\section{Summary}
+
+I implemented an initial version of the higher-order GP paper by
+Kuchs in Haskell. 
+The current version is hardcoded to the S and K combinators, and the
+algorithm parameters must be given at compile time rather than run
+time. Of course, I will lift these restrictions in the future.
+
+I also briefly looked at some combinatory logic problems from a public
+dataset for automated theorem provers (TPTP), which I plan to test my
+implementation against Kuchs' published results.
+
+I was able to solve a reasonable number of problems so far, but
+certain complex problems that were solved by Kuchs have not been
+solved by my implementation yet. However, I have not yet done
+sufficient testing on those problems (I only tried a handful of random
+number seeds, and played with tweaking parameters to the algorithms).
+
+Additionally, I found a list of combinatory logic combinators
+\footnote{\texttt{http://www.angelfire.com/tx4/cus/combinator/birds.html}},
+which includes combinator definitions in lambda form, SK form, and a
+smaller form that reuses previously defined combinators.
+
+The method of selection used by Kuchs was to limit selection to the
+top 30 percent of programs. As suggested by GP literature
+(the book ``A Field Guide Guide to Genetic Programming'')
+, I instead implemented tournament selection. However, I should still
+implement Kuchs' selection method to more accurately compare my
+implementation to his published results.
+
+\end{document}
+
