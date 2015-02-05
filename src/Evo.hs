@@ -133,31 +133,35 @@ evo = evolve 0 =<< initial
 runEvo :: Exp -> Args -> Int -> (Gen , Population)
 runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 
-infix 2 #
-(#) :: String -> Exp -> (Gen , [Int])
-args # e = bimap id (map snd) $ runEvo e (map show args) 199
+----------------------------------------------------------------------
+
+type Vars = String
+
+prob :: String -> Vars -> Exp -> Int -> (Gen , [Int])
+prob _ args e = bimap id (map snd) . runEvo e (map show args)
 
 ----------------------------------------------------------------------
 
 -- http://www.angelfire.com/tx4/cus/combinator/birds.html
 
--- solved
-_K  = "ab"   # "a"
-_I  = "a"    # "a"
-_T  = "ab"   # "b" :@: "a"
-_B  = "abc"  # "a" :@: ("b" :@: "c")
-_W  = "ab"   # "a" :@: ("b" :@: "b")
-             
-_M  = "a"    # "a" :@: "a"
-_M2 = "ab"   # "a" :@: "b" :@: ("a" :@: "b")
-_D  = "abcd" # "a" :@: "b" :@: ("c" :@: "d")
-_Q3 = "abc"  # "c" :@: ("a" :@: "b")
+solved =
+ [ prob "K"  "ab"   $ "a"
+ , prob "I"  "a"    $ "a"
+ , prob "T"  "ab"   $ "b" :@: "a"
+ , prob "B"  "abc"  $ "a" :@: ("b" :@: "c")
+ , prob "W"  "ab"   $ "a" :@: ("b" :@: "b")
+ , prob "M"  "a"    $ "a" :@: "a"
+ , prob "M2" "ab"   $ "a" :@: "b" :@: ("a" :@: "b")
+ , prob "D"  "abcd" $ "a" :@: "b" :@: ("c" :@: "d")
+ , prob "Q3" "abc"  $ "c" :@: ("a" :@: "b")
+ ]
 
--- unsolved
-_C  = "abc"  # "a" :@: "c" :@: "b"
-_B1 = "abcd" # "a" :@: ("b" :@: "c" :@: "d")
-_Q  = "abc"  # "b" :@: ("a" :@: "c")
-_U  = "ab"   # "b" :@: ("a" :@: "a" :@: "b")
+unsolved =
+ [ prob "C"  "abc"  $ "a" :@: "c" :@: "b"
+ , prob "B1" "abcd" $ "a" :@: ("b" :@: "c" :@: "d")
+ , prob "Q"  "abc"  $ "b" :@: ("a" :@: "c")
+ , prob "U"  "ab"   $ "b" :@: ("a" :@: "a" :@: "b")
+ ]
 
 ----------------------------------------------------------------------
 
