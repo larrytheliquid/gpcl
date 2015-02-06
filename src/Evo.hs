@@ -87,8 +87,12 @@ randIndiv = do
   t <- randTree
   mkIndiv t
 
+randIndivs :: Int -> Evo Population
+randIndivs n | n <= 0 = return []
+randIndivs n | otherwise = insertIndiv <$> randIndiv <*> randIndivs (pred n)
+
 initial :: Evo Population
-initial = replicateM popSize randIndiv
+initial = randIndivs popSize
 
 select :: Population -> Evo Indiv
 select ts = do
@@ -138,10 +142,10 @@ runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 type Vars = String
 
 prob :: String -> Vars -> Exp -> Int -> (Gen , [Int])
-prob _ args e = bimap id (map snd) . runEvo e (map show args)
+prob _ args e = bimap id (map snd) . runEvo e (map (:[]) args)
 
 attempts = 10
-seed = 198
+seed = 199
 
 printAttempt :: (Gen , [Int]) -> IO ()
 printAttempt (n , xs) = do
@@ -151,8 +155,8 @@ printAttempt (n , xs) = do
 gens :: IO ()
 gens = do
   let rs = randoms (mkStdGen seed)
-  let ns = map (solved !! 1) (take attempts rs)
-  mapM_ printAttempt (sort ns)
+  let ns = map (solved !! 3) (take attempts rs)
+  mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
 
 main = gens
 
