@@ -1,0 +1,57 @@
+\title{\textbf{Week 3 Report}\\Higher-Order Genetic Programming \\for Semantic Unifiers}
+
+\author{Larry Diehl}
+\date{\today}
+
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[hscale=0.7,vscale=0.8]{geometry}
+
+\begin{document}
+
+\maketitle
+
+\section{Summary}
+
+%% 
+
+I noticed that Kuchs had one one particular problem in his paper,
+evolving the U combinator, that my implementation was not able to
+solve. After much debugging, I discovered a bug in my program where
+the initial population was not sorted by the fitness score. Once I
+fixed this, solving U became possible.
+
+I created a DSL for inputting unification problems from combinatory
+logic, and started adding the problems from
+\footnote{\texttt{http://www.angelfire.com/tx4/cus/combinator/birds.html}}
+to my problem set. Then, I modified my program to print results for
+multiple runs over multiple problems.
+
+There are several difficult problems from my problem set that I cannot
+yet solve. After inspecting the output of my program, I noticed that
+unsolved problems follow a particular pattern. Almost all generations
+contain a majority of individuals with a fitness score of 1. This
+means that the algorithm can find many approximate solutions, but can
+no longer tell which is better. Going forward, I have two plans to try
+to solve harder combinatory logic problems:
+
+\begin{itemize}
+\item Try adding the B and C combinators, in addition to S and K, to
+  the evolved solutions. The disadvantage of this approach is that the
+  problem space becomes larger to explore. However, the advantage is
+  that many problems can be given shorter solutions with B and C, as
+  they are common specializations of S.
+
+\item Try modifying the fitness score. I will keep the current score
+  as is, and add an additional lexicographic component to fitness.
+  This means that the new fitness will only be used if there is a tie
+  in the current fitness (i.e. to further differentiate individuals
+  with fitness 1). Many difficult solutions to equational problems
+  contain contained repeated/shared variables in their solutions. I
+  plan to try a an additional fitness measure based on the sum of the
+  number of shared variables appearing in the solution.
+\end{itemize}
+
+\end{document}
+
