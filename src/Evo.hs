@@ -3,7 +3,7 @@
   , OverloadedStrings
   #-}
 
-module Evo where
+module Main where
 import Tree
 import Exp
 import Control.Applicative
@@ -137,13 +137,24 @@ runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 
 type Vars = String
 
-prob :: String -> Vars -> Exp -> (Gen , [Int])
-prob _ args e = bimap id (map snd) $ runEvo e (map show args) 199
+prob :: String -> Vars -> Exp -> Int -> (Gen , [Int])
+prob _ args e = bimap id (map snd) . runEvo e (map show args)
 
-main = do
-  let (n , xs) = head solved
+attempts = 10
+seed = 198
+
+printAttempt :: (Gen , [Int]) -> IO ()
+printAttempt (n , xs) = do
   putStrLn $ "Generation " ++ show n
-  mapM_ (putStrLn . show) xs
+  putStrLn $ show xs
+
+gens :: IO ()
+gens = do
+  let rs = randoms (mkStdGen seed)
+  let ns = map (solved !! 1) (take attempts rs)
+  mapM_ printAttempt (sort ns)
+
+main = gens
 
 ----------------------------------------------------------------------
 
