@@ -137,8 +137,13 @@ runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 
 type Vars = String
 
-prob :: String -> Vars -> Exp -> Int -> (Gen , [Int])
-prob _ args e = bimap id (map snd) . runEvo e (map show args)
+prob :: String -> Vars -> Exp -> (Gen , [Int])
+prob _ args e = bimap id (map snd) $ runEvo e (map show args) 199
+
+main = do
+  let (n , xs) = head solved
+  putStrLn $ "Generation " ++ show n
+  mapM_ (putStrLn . show) xs
 
 ----------------------------------------------------------------------
 
