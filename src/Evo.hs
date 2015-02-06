@@ -140,8 +140,9 @@ runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 ----------------------------------------------------------------------
 
 type Vars = String
+type Problem = Int -> (Gen , [Int])
 
-prob :: String -> Vars -> Exp -> Int -> (Gen , [Int])
+prob :: String -> Vars -> Exp -> Problem
 prob _ args e = bimap id (map snd) . runEvo e (map (:[]) args)
 
 attempts = 10
@@ -152,13 +153,18 @@ printAttempt (n , xs) = do
   putStrLn $ "Generation " ++ show n
   putStrLn $ show xs
 
-gens :: IO ()
-gens = do
-  let rs = randoms (mkStdGen seed)
-  let ns = map (solved !! 3) (take attempts rs)
-  mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
+printAttempts :: [(Gen , [Int])] -> IO ()
+printAttempts xss = do
+  putStrLn . show $ sort $ map fst xss
 
-main = gens
+gens :: [Problem] -> IO ()
+gens probs = do
+  let rs = take attempts $ randoms (mkStdGen seed)
+  let ns = map (\f -> map f rs) probs
+  mapM_ printAttempts ns
+  -- mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
+
+main = gens solved
 
 ----------------------------------------------------------------------
 
@@ -169,18 +175,19 @@ solved =
  , prob "I"  "a"    $ "a"
  , prob "T"  "ab"   $ "b" :@: "a"
  , prob "B"  "abc"  $ "a" :@: ("b" :@: "c")
- , prob "W"  "ab"   $ "a" :@: ("b" :@: "b")
  , prob "M"  "a"    $ "a" :@: "a"
  , prob "M2" "ab"   $ "a" :@: "b" :@: ("a" :@: "b")
+ -- hard
+ , prob "W"  "ab"   $ "a" :@: ("b" :@: "b")
  , prob "D"  "abcd" $ "a" :@: "b" :@: ("c" :@: "d")
  , prob "Q3" "abc"  $ "c" :@: ("a" :@: "b")
+ , prob "C"  "abc"  $ "a" :@: "c" :@: "b"
+ , prob "B1" "abcd" $ "a" :@: ("b" :@: "c" :@: "d")
+ , prob "U"  "ab"   $ "b" :@: ("a" :@: "a" :@: "b")
  ]
 
 unsolved =
- [ prob "C"  "abc"  $ "a" :@: "c" :@: "b"
- , prob "B1" "abcd" $ "a" :@: ("b" :@: "c" :@: "d")
- , prob "Q"  "abc"  $ "b" :@: ("a" :@: "c")
- , prob "U"  "ab"   $ "b" :@: ("a" :@: "a" :@: "b")
+ [ prob "Q"  "abc"  $ "b" :@: ("a" :@: "c")
  ]
 
 ----------------------------------------------------------------------
