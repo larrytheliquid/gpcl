@@ -30,17 +30,19 @@ maxGen = 30
 elitism :: Float
 elitism = 0.3
 
+mutationRate :: Float
+mutationRate = 0.1
+
 ----------------------------------------------------------------------
 
 type Evo = ReaderT (Exp , Args) (State StdGen)
 type Gen = Int
 
 randInt :: Int -> Evo Int
-randInt n = do
-  s <- get
-  let (r , s') = randomR (0, pred n) s
-  put s'
-  return r
+randInt n = state $ randomR (0, pred n)
+
+randFloat :: Evo Float
+randFloat = state random
 
 randBool :: Evo Bool
 randBool = (0 ==) <$> randInt 2
@@ -57,6 +59,12 @@ mkIndiv t = do
   return (t , score t args e)
 
 ----------------------------------------------------------------------
+
+mutate :: (Enum a, Bounded a) => Tree a -> Evo (Tree a)
+mutate t1 = do
+  z <- randZip t1
+  t2 <- randTree' (depth (currentTree z))
+  return $ rootTree (replace t2 z)
 
 crossover :: Tree a -> Tree a -> Evo (Tree a)
 crossover t1 t2 = do
@@ -87,6 +95,14 @@ randIndiv = do
   t <- randTree
   mkIndiv t
 
+mutateIndiv :: Indiv -> Evo Indiv
+mutateIndiv x@(_ , 0) = return x
+mutateIndiv x@(t , _) = do
+  n <- randFloat
+  if n > mutationRate
+  then return x
+  else mkIndiv =<< mutate t
+
 randIndivs :: Int -> Evo Population
 randIndivs n | n <= 0 = return []
 randIndivs n | otherwise = insertIndiv <$> randIndiv <*> randIndivs (pred n)
@@ -116,13 +132,19 @@ tooLarge t = depth (fst t) > maxCrossDepth
 isSolution :: Indiv -> Bool
 isSolution t = snd t == 0
 
-nextGen :: Population -> Population -> Evo Population
-nextGen ts ts' | length ts <= length ts' = return ts'
-nextGen ts ts' | otherwise = do
+mutateGen :: Population -> Evo Population
+mutateGen = foldM (\xs x -> flip insertIndiv xs <$> mutateIndiv x) []
+
+crossoverGen :: Population -> Population -> Evo Population
+crossoverGen ts ts' | length ts <= length ts' = return ts'
+crossoverGen ts ts' | otherwise = do
   t' <- breed ts
   if tooLarge t'
-  then nextGen ts ts'
-  else nextGen ts (insertIndiv t' ts')
+  then crossoverGen ts ts'
+  else crossoverGen ts (insertIndiv t' ts')
+
+nextGen :: Population -> Population -> Evo Population
+nextGen ts ts' = mutateGen =<< crossoverGen ts ts'
 
 evolve :: Gen -> Population -> Evo (Gen , Population)
 evolve n ts | n >= maxGen || isSolution (head ts) = return (n , ts)
