@@ -31,7 +31,10 @@ elitism :: Float
 elitism = 0.3
 
 mutationRate :: Float
-mutationRate = 0.1
+mutationRate = 0.0
+
+hillMutationRate :: Float
+hillMutationRate = 0.0
 
 ----------------------------------------------------------------------
 
@@ -95,13 +98,17 @@ randIndiv = do
   t <- randTree
   mkIndiv t
 
+mutationByFitness :: Int -> Float
+mutationByFitness 0 = 0.0
+mutationByFitness 1 = hillMutationRate
+mutationByFitness _ = mutationRate
+
 mutateIndiv :: Indiv -> Evo Indiv
-mutateIndiv x@(_ , 0) = return x
-mutateIndiv x@(t , _) = do
+mutateIndiv x@(t , i) = do
   n <- randFloat
-  if n > mutationRate
-  then return x
-  else mkIndiv =<< mutate t
+  if n < mutationByFitness i
+  then mkIndiv =<< mutate t
+  else return x
 
 randIndivs :: Int -> Evo Population
 randIndivs n | n <= 0 = return []
