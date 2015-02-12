@@ -140,27 +140,41 @@ runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
 ----------------------------------------------------------------------
 
 type Vars = String
-type Problem = Int -> (Gen , [Int])
+type Problem = [Int] -> Sol
+
+data Sol = Sol
+  { name   :: String
+  , args   :: [String]
+  , target :: Exp
+  , runs   :: [(Gen , [Int])]
+  } deriving Show
 
 prob :: String -> Vars -> Exp -> Problem
-prob _ args e = bimap id (map snd) . runEvo e (map (:[]) args)
+prob name args e rs = Sol
+  { name = name
+  , args = args'
+  , target = e
+  , runs = map runner rs
+  } where
+  args' = map (:[]) args
+  runner = bimap id (map snd) . runEvo e args'
 
 attempts = 10
 seed = 199
 
-printAttempt :: (Gen , [Int]) -> IO ()
-printAttempt (n , xs) = do
-  putStrLn $ "Generation " ++ show n
-  putStrLn $ show xs
+-- printAttempt :: (Gen , [Int]) -> IO ()
+-- printAttempt (n , xs) = do
+--   putStrLn $ "Generation " ++ show n
+--   putStrLn $ show xs
 
-printAttempts :: [(Gen , [Int])] -> IO ()
-printAttempts xss = do
-  putStrLn . show $ sort $ map fst xss
+printAttempts :: Sol -> IO ()
+printAttempts sol = do
+  putStrLn $ name sol ++ " : " ++ (show . sort . map fst) (runs sol)
 
 gens :: [Problem] -> IO ()
 gens probs = do
   let rs = take attempts $ randoms (mkStdGen seed)
-  let ns = map (\f -> map f rs) probs
+  let ns = map (\f -> f rs) probs
   mapM_ printAttempts ns
   -- mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
 
