@@ -59,7 +59,7 @@ randZip t = locate t <$> randInt (size t)
 mkIndiv :: Tree Comb -> Evo Indiv
 mkIndiv t = do
   (e , args) <- ask
-  return (t , score t args e)
+  return (score t args e)
 
 ----------------------------------------------------------------------
 

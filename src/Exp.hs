@@ -81,6 +81,11 @@ toExp :: Tree Comb -> Exp
 toExp (Branch l r) = toExp l :@: toExp r
 toExp (Leaf c) = Comb c
 
+fromExp :: Exp -> Tree Comb
+fromExp (l :@: r) = Branch (fromExp l) (fromExp r)
+fromExp (Comb c) = Leaf c
+fromExp (Var _) = error "Variables not allowed"
+
 step :: Exp -> Maybe Exp
 step (Comb S :@: x :@: y :@: z) = Just $ x :@: z :@: (y :@: z)
 step (Comb K :@: x :@: _) = Just x
@@ -109,12 +114,13 @@ diff (Comb x) (Comb y) | x == y = 0
 diff (x1 :@: y1) (x2 :@: y2) = diff x1 x2 + diff y1 y2
 diff x y = succ (abs (nodes x - nodes y))
 
--- TODO only norm rhs once
-score :: Tree Comb -> Args -> Exp -> Int
-score t args e = diff lhs rhs * weight
+score :: Tree Comb -> Args -> Exp -> (Tree Comb , Int)
+score t args e2 = (t' , diff lhs rhs * weight)
   where
-  lhs = norm (toExp t `apply` args)
-  rhs = norm e
+  e1 = toExp t
+  t' = fromExp (norm e1)
+  lhs = norm (e1 `apply` args)
+  rhs = norm e2
   structure = leaves t
   weight = if structure >= minStruture then 1 else minStruture - structure + 1
 
