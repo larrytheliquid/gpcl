@@ -1,0 +1,61 @@
+\title{\textbf{Week 4 Report}\\Higher-Order Genetic Programming \\for Semantic Unifiers}
+
+\author{Larry Diehl}
+\date{\today}
+
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[hscale=0.7,vscale=0.8]{geometry}
+
+\begin{document}
+
+\maketitle
+
+\section{Summary}
+
+%% 
+
+I completed adding all combinatory logic problems from the problem set
+I'm using
+\footnote{\texttt{http://www.angelfire.com/tx4/cus/combinator/birds.html}}.
+I also made my program output more information, over several GP runs
+of each problem in a batch mode.
+
+After looking more closely at the problems, I found out that many hard
+problems do not need to have sharing in the problem (but still may
+have sharing in the solution). Thus, I did not modify the fitness
+score to use sharing in the problem, but I may still try sharing in
+candidate solutions in the future.
+
+As mentioned last week, I was thinking about adding combinators B and
+C to my atomic combinators for proposed solutions. This is inspired by
+early work on combinatory logic by Sch{\"o}nfinkel, who used these
+specialized versions of S to more easily translate between combinators
+and lambda terms. The disadvantage is that the search space increases
+with more combinators in candidates, but the benefit is that programs
+may be expressible in smaller trees of combinators. In this case, it
+turns out that the benefit far outweighs the cost. By adding B and C,
+I went from being able to solve only about 30\% of my problem set, to
+solving everything except two problems.
+
+Before adding B and C, I tried to get my program to solve more
+problems by trying various things. One was to add two seperate
+subtree mutations percentages over each generation of a population. A
+solution is never mutated. A candidate with a fitness of 1 (the best
+score besides 0, a solution) can be assigned a different (usually
+higher) mutation rate than other members of the population too. This helps
+when the population gets saturated with 70\% programs of fitness 1.
+
+I also made my GP algorithm partially normalize candidate solutions as
+it runs, instead of only (fully)) normalizing by applying arguments
+during fitness evaluation. This shrinks intermediate terms, reducing
+duplication during crossover and making it more of a fair chance that
+crossover chooses a unique subtree.
+
+Partially normalizing candidate solutions made me solve more problems
+than before. Mutation didn't help me solve more problems, but it increased
+the likelihood of solving difficult problems.
+
+\end{document}
+
