@@ -31,10 +31,10 @@ elitism :: Float
 elitism = 0.3
 
 mutationRate :: Float
-mutationRate = 0.1
+mutationRate = 0.0
 
 hillMutationRate :: Float
-hillMutationRate = 0.2
+hillMutationRate = 0.0
 
 ----------------------------------------------------------------------
 
