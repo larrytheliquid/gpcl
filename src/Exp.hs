@@ -15,7 +15,7 @@ minStruture = 10
 
 ----------------------------------------------------------------------
 
-data Comb = S | K | C | B
+data Comb = S | K | I | C | B
   deriving (Show,Read,Eq,Ord,Enum,Bounded)
 
 infixl 5 :@:
@@ -60,7 +60,8 @@ _K = Comb K
 
 -- norm (_I :@: Var "x")
 _I :: Exp
-_I = _S :@: _K :@: _K
+_I = Comb I
+-- _I = _S :@: _K :@: _K
 
 -- norm (_T :@: Var "x" :@: Var "f")
 _T :: Exp
@@ -95,6 +96,7 @@ fromExp (Var _) = error "Variables not allowed"
 step :: Exp -> Maybe Exp
 step (Comb S :@: x :@: y :@: z) = Just $ x :@: z :@: (y :@: z)
 step (Comb K :@: x :@: _) = Just x
+step (Comb I :@: x) = Just x
 step (Comb C :@: x :@: y :@: z) = Just $ x :@: z :@: y
 step (Comb B :@: x :@: y :@: z) = Just $ x :@: (y :@: z)
 step x@(Var _) = Just x
