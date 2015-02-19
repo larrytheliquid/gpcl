@@ -31,10 +31,10 @@ elitism :: Float
 elitism = 0.3
 
 mutationRate :: Float
-mutationRate = 0.0
+mutationRate = 0.1
 
 hillMutationRate :: Float
-hillMutationRate = 0.0
+hillMutationRate = 0.2
 
 ----------------------------------------------------------------------
 
@@ -155,6 +155,7 @@ nextGen ts ts' = mutateGen =<< crossoverGen ts ts'
 
 evolve :: Gen -> Population -> Evo (Gen , Population)
 evolve n ts | n >= maxGen || isSolution (head ts) = return (n , ts)
+-- evolve n ts | otherwise = evolve (succ n) =<< initial
 evolve n ts | otherwise = evolve (succ n) =<< nextGen ts elite
   where
   -- elite = take 1 ts
@@ -198,7 +199,7 @@ seed = 199
 
 printAttempts :: Sol -> IO ()
 printAttempts sol = do
-  putStrLn $ name sol ++ " : " ++ (show . sort . map fst) (runs sol)
+  putStrLn $ name sol ++ " : " ++ (show . sort . map fst) (runs sol) ++ " = " ++ show (sum (map fst (runs sol)))
 
 gens :: [Problem] -> IO ()
 gens probs = do
