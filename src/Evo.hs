@@ -208,13 +208,26 @@ gens probs = do
   mapM_ printAttempts ns
   -- mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
 
-main = gens solved
+main = gens boolProbs
 
 ----------------------------------------------------------------------
 
+-- http://en.wikipedia.org/wiki/Church_encoding#Church_Booleans
+-- http://www.iep.utm.edu/lambda-calculi
+
+boolProbs =
+  [ prob "true"  "ab"  $ "a"
+  , prob "false" "ab"  $ "b"
+  , prob "and"   "pq"  $ "p" :@: "q" :@: "p"
+  , prob "or"    "pq"  $ "p" :@: "p" :@: "q"
+  , prob "if"    "pab" $ "p" :@: "a" :@: "b"
+  , prob "not"   "pab" $ "p" :@: "b" :@: "a"
+  , prob "xor"   "pq"  $ "p" :@: ("q" :@: _false :@: _true) :@: "q"
+  ]
+
 -- http://www.angelfire.com/tx4/cus/combinator/birds.html
 
-solved =
+combLogProbs =
  [ prob "B"     "abc"     $ "a" :@: ("b" :@: "c")
  , prob "B1"    "abcd"    $ "a" :@: ("b" :@: "c" :@: "d")
  , prob "B2"    "abcde"   $ "a" :@: ("b" :@: "c" :@: "d" :@: "e")

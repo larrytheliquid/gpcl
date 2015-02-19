@@ -75,6 +75,12 @@ _O = _S :@: _I :@: _I :@: (_S :@: _I :@: _I)
 -- would loop
 -- norm ((_S :@: Var "x" :@: Var "y" :@: Var "z") :@: Var "a")
 
+_true :: Exp
+_true = _K
+
+_false :: Exp
+_false = _K :@: _I
+
 ----------------------------------------------------------------------
 
 toExp :: Tree Comb -> Exp
