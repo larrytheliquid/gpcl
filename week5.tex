@@ -1,0 +1,49 @@
+\title{\textbf{Week 5 Report}\\Higher-Order Genetic Programming \\for Semantic Unifiers}
+
+\author{Larry Diehl}
+\date{\today}
+
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[hscale=0.7,vscale=0.8]{geometry}
+
+\begin{document}
+
+\maketitle
+
+\section{Summary}
+
+I implemented and compared my results against randomly generating
+candidates. This helped me determine which combinatory logic problems
+were easy, and which were hard. In the problem set I've been using,
+many of the problems are easy (they take a maximum of 100 random
+generations to solve out of 10 tries). However, some problems are
+never solved by random generation (but GP solves them), and many
+problems get solved by GP more reliably (in signficantly less max
+generations across many runs). As a final litmus test, I ensured that
+picking the opposite of what the fitness score tells you leads to GP
+runs that are worse than random.
+
+On harder problems, the issue I had where 70\% of the population
+saturates to fitness 1 is less likely to happen, and fitness is more balanced across the
+population. Additionally, adding the identity combinator to my base
+set helped me solve the remaining problems in my set. So now my
+algorithm uses the standard SKI combinators, plus B and C (which are
+specializations of S and are used in algorithms that translate
+combinators to lambda terms). I also increased the
+``mininum structure'' score (used to scale fitness) to solve harder
+problems. However, I need to be careful about the interaction between the
+mininum structure parameter, and partially normalizing terms during
+evolution (which decreases structure but also bloat).
+
+Finally, I have begun testing to see how GP works to evolve
+data structures and functions over them. For my first attempt I am
+using Church-encoded data structures. Currently, I have problems for
+Church-encoded booleans, natural numbers, pairs, and lists.
+Because higher-order combinators are so confusing for humans to
+reason about, I now always run the random generator first to find out
+which problems are hard. 
+
+\end{document}
+

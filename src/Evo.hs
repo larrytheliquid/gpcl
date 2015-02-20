@@ -200,7 +200,7 @@ seed = 199
 printAttempts :: Sol -> IO ()
 printAttempts sol = do
   putStrLn $ name sol ++ " : " ++ show (map fst sorted) ++ " = " ++ show (sum (map fst (runs sol)))
-  -- putStrLn $ show $ (snd . head) sorted
+  putStrLn $ show $ (snd . head) sorted
   where
   sorted = sortBy (\ x y -> compare (fst x) (fst y)) (runs sol)
 
@@ -211,7 +211,7 @@ gens probs = do
   mapM_ printAttempts ns
   -- mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
 
-main = gens listProbs
+main = gens boolProbs
 
 ----------------------------------------------------------------------
 
