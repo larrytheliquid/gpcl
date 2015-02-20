@@ -16,7 +16,7 @@ import Data.Bifunctor
 ----------------------------------------------------------------------
 
 maxInitDepth :: Int
-maxInitDepth = 10
+maxInitDepth = 20
 
 maxCrossDepth :: Int
 maxCrossDepth = 17
@@ -208,7 +208,7 @@ gens probs = do
   mapM_ printAttempts ns
   -- mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
 
-main = gens natProbs
+main = gens pairProbs
 
 ----------------------------------------------------------------------
 
@@ -235,6 +235,12 @@ natProbs =
   , prob "plus"  "mnfx" $ "m" :@: "f" :@: ("n" :@: "f" :@: "x")
   , prob "mult"  "mnf"  $ "m" :@: ("n" :@: "f")
   , prob "exp"   "mn"   $ "n" :@: "m"
+  ]
+
+pairProbs =
+  [ prob "pair"   "xyz" $ "z" :@: "x" :@: "y"
+  , prob "first"  "p"   $ "p" :@: _true
+  , prob "second" "p"   $ "p" :@: _false
   ]
 
 -- http://www.angelfire.com/tx4/cus/combinator/birds.html
