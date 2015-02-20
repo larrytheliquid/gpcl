@@ -199,7 +199,10 @@ seed = 199
 
 printAttempts :: Sol -> IO ()
 printAttempts sol = do
-  putStrLn $ name sol ++ " : " ++ (show . sort . map fst) (runs sol) ++ " = " ++ show (sum (map fst (runs sol)))
+  putStrLn $ name sol ++ " : " ++ show (map fst sorted) ++ " = " ++ show (sum (map fst (runs sol)))
+  putStrLn $ show $ (snd . head) sorted
+  where
+  sorted = sortBy (\ x y -> compare (fst x) (fst y)) (runs sol)
 
 gens :: [Problem] -> IO ()
 gens probs = do
@@ -242,6 +245,12 @@ pairProbs =
   , prob "first"  "p"   $ "p" :@: _true
   , prob "second" "p"   $ "p" :@: _false
   ]
+
+-- listProbs =
+--   [ prob "nil"   "cn" $ "n"
+--   , prob "isnil" "l"   $ "p" :@: _true
+--   , prob "second" "p"   $ "p" :@: _false
+--   ]
 
 -- http://www.angelfire.com/tx4/cus/combinator/birds.html
 
