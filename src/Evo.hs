@@ -208,7 +208,7 @@ gens probs = do
   mapM_ printAttempts ns
   -- mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
 
-main = gens boolProbs
+main = gens natProbs
 
 ----------------------------------------------------------------------
 
@@ -223,6 +223,18 @@ boolProbs =
   , prob "if"    "pab" $ "p" :@: "a" :@: "b"
   , prob "not"   "pab" $ "p" :@: "b" :@: "a"
   , prob "xor"   "pq"  $ "p" :@: ("q" :@: _false :@: _true) :@: "q"
+  ]
+
+natProbs =
+  [ prob "zero"  "fx"   $ "x"
+  , prob "one"   "fx"   $ "f" :@: "x"
+  , prob "two"   "fx"   $ "f" :@: ("f" :@: "x")
+  , prob "three" "fx"   $ "f" :@: ("f" :@: ("f" :@: "x"))
+  , prob "four"  "fx"   $ "f" :@: "f" :@: ("f" :@: ("f" :@: "x"))
+  , prob "succ"  "nfx"  $ "f" :@: ("n" :@: "f" :@: "x")
+  , prob "plus"  "mnfx" $ "m" :@: "f" :@: ("n" :@: "f" :@: "x")
+  , prob "mult"  "mnf"  $ "m" :@: ("n" :@: "f")
+  , prob "exp"   "mn"   $ "n" :@: "m"
   ]
 
 -- http://www.angelfire.com/tx4/cus/combinator/birds.html
