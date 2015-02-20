@@ -200,7 +200,7 @@ seed = 199
 printAttempts :: Sol -> IO ()
 printAttempts sol = do
   putStrLn $ name sol ++ " : " ++ show (map fst sorted) ++ " = " ++ show (sum (map fst (runs sol)))
-  putStrLn $ show $ (snd . head) sorted
+  -- putStrLn $ show $ (snd . head) sorted
   where
   sorted = sortBy (\ x y -> compare (fst x) (fst y)) (runs sol)
 
@@ -211,7 +211,7 @@ gens probs = do
   mapM_ printAttempts ns
   -- mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
 
-main = gens pairProbs
+main = gens listProbs
 
 ----------------------------------------------------------------------
 
@@ -246,11 +246,13 @@ pairProbs =
   , prob "second" "p"   $ "p" :@: _false
   ]
 
--- listProbs =
---   [ prob "nil"   "cn" $ "n"
---   , prob "isnil" "l"   $ "p" :@: _true
---   , prob "second" "p"   $ "p" :@: _false
---   ]
+listProbs =
+  [ prob "nil"    "cn"   $ "n"
+  , prob "isnil"  "l"    $ "l" :@: (_K :@: _K :@: _false) :@: _true
+  , prob "cons"   "htcn" $ "c" :@: "h" :@: ("t" :@: "c" :@: "n")
+  , prob "head"   "l"    $ "l" :@: _true :@: _false
+  -- , prob "tail"   "lcn"  $ "l" :@: undefined :@: (_K :@: "n") _false
+  ]
 
 -- http://www.angelfire.com/tx4/cus/combinator/birds.html
 

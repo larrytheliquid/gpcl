@@ -92,6 +92,12 @@ _false = _K :@: _I
 _pair :: Exp
 _pair = _B :@: _C :@: _T
 
+_first :: Exp
+_first = _T :@: _true
+
+_second :: Exp
+_second = _T :@: _false
+
 ----------------------------------------------------------------------
 
 toExp :: Tree Comb -> Exp
