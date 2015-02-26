@@ -17,6 +17,9 @@ minStruture = 15
 
 ----------------------------------------------------------------------
 
+data SK = S' | K'
+  deriving (Show,Read,Eq,Ord,Enum,Bounded)
+
 data Comb = S | K | I | C | B
   deriving (Show,Read,Eq,Ord,Enum,Bounded)
 
@@ -26,6 +29,11 @@ data Exp a = Exp a :@: Exp a | Var String | Prim a
 
 class Contractible a where
   contract :: Exp a -> Maybe (Exp a)
+
+instance Contractible SK where
+  contract (Prim S' :@: x :@: y :@: z) = Just $ x :@: z :@: (y :@: z)
+  contract (Prim K' :@: x :@: _) = Just x
+  contract _ = Nothing
 
 instance Contractible Comb where
   contract (Prim S :@: x :@: y :@: z) = Just $ x :@: z :@: (y :@: z)
