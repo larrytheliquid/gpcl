@@ -39,7 +39,7 @@ hillMutationRate = 0.0
 
 ----------------------------------------------------------------------
 
-type Evo a = ReaderT (Exp a , Args) (State StdGen)
+type Evo a = ReaderT (Cases a) (State StdGen)
 type Gen = Int
 type Indiv a = (Tree a , Int)
 type Population a = [Indiv a]
@@ -61,8 +61,8 @@ randZip t = locate t <$> randInt (size t)
 
 mkIndiv :: Scorable a => Tree a -> Evo a (Indiv a)
 mkIndiv t = do
-  (e , args) <- ask
-  return (score t args e)
+  cases <- ask
+  return (score t cases)
 
 ----------------------------------------------------------------------
 
@@ -166,8 +166,8 @@ evolve n ts | otherwise = evolve (succ n) =<< nextGen ts elite
 evo :: Randomizable a => Evo a (Gen , Population a)
 evo = evolve 0 =<< initial
 
-runEvo :: Randomizable a => Exp a -> Args -> Int -> (Gen , Population a)
-runEvo e args i = fst $ runState (runReaderT evo (e , args)) (mkStdGen i)
+runEvo :: Randomizable a => Cases a -> Int -> (Gen , Population a)
+runEvo cases i = fst $ runState (runReaderT evo cases) (mkStdGen i)
 
 ----------------------------------------------------------------------
 
@@ -190,7 +190,7 @@ prob name args e rs = Sol
   , runs = map runner rs
   } where
   args' = map (:[]) args
-  runner = bimap id (map snd) . runEvo e args'
+  runner = bimap id (map snd) . runEvo [(map Var args' , e)]
 
 attempts = 10
 seed = 199

@@ -79,9 +79,9 @@ combs (x :@: y) = nodes x + nodes y
 
 ----------------------------------------------------------------------
 
-type Args = [String]
-apply :: Exp a -> Args -> Exp a
-apply = foldl (\f x -> f :@: Var x)
+type Args a = [Exp a]
+apply :: Exp a -> Args a -> Exp a
+apply = foldl (:@:)
 
 ----------------------------------------------------------------------
 
@@ -168,12 +168,18 @@ diff (x1 :@: y1) (x2 :@: y2) = diff x1 x2 + diff y1 y2
 diff x y = succ (abs (nodes x - nodes y))
 
 type Scorable a = (Eq a, Contractible a)
+type Case a = (Args a, Exp a)
+type Cases a = [Case a]
 
-score :: Scorable a => Tree a -> Args -> Exp a -> (Tree a , Int)
-score t args e2 = (t' , diff lhs rhs * weight)
+score :: Scorable a => Tree a -> Cases a -> (Tree a , Int)
+score t xs = (t' , foldl (\acc x -> acc + score1 t x) 0 xs)
+  where
+  t' = fromExp (norm (toExp t))
+
+score1 :: Scorable a => Tree a -> Case a -> Int
+score1 t (args, e2) = diff lhs rhs * weight
   where
   e1 = toExp t
-  t' = fromExp (norm e1)
   lhs = norm (e1 `apply` args)
   rhs = norm e2
   structure = leaves t
