@@ -221,8 +221,8 @@ main = gens combLogProbs
 -- http://en.wikipedia.org/wiki/Church_encoding#Church_Booleans
 -- http://www.iep.utm.edu/lambda-calculi
 
-boolProbs :: Problems Comb
-boolProbs =
+cboolProbs :: Problems Comb
+cboolProbs =
   [ prob "true"  "ab"  $ "a"
   , prob "false" "ab"  $ "b"
   , prob "and"   "pq"  $ "p" :@: "q" :@: "p"
@@ -232,8 +232,8 @@ boolProbs =
   , prob "xor"   "pq"  $ "p" :@: ("q" :@: _false :@: _true) :@: "q"
   ]
 
-natProbs :: Problems Comb
-natProbs =
+cnatProbs :: Problems Comb
+cnatProbs =
   [ prob "zero"  "fx"   $ "x"
   , prob "one"   "fx"   $ "f" :@: "x"
   , prob "two"   "fx"   $ "f" :@: ("f" :@: "x")
@@ -245,15 +245,15 @@ natProbs =
   , prob "exp"   "mn"   $ "n" :@: "m"
   ]
 
-pairProbs :: Problems Comb
-pairProbs =
+cpairProbs :: Problems Comb
+cpairProbs =
   [ prob "pair"   "xyz" $ "z" :@: "x" :@: "y"
   , prob "first"  "p"   $ "p" :@: _true
   , prob "second" "p"   $ "p" :@: _false
   ]
 
-listProbs :: Problems Comb
-listProbs =
+clistProbs :: Problems Comb
+clistProbs =
   [ prob "nil"    "cn"   $ "n"
   , prob "isnil"  "l"    $ "l" :@: (_K :@: _K :@: _false) :@: _true
   , prob "cons"   "htcn" $ "c" :@: "h" :@: ("t" :@: "c" :@: "n")
