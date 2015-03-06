@@ -1,0 +1,35 @@
+\title{\textbf{Week 7 Report}\\Higher-Order Genetic Programming \\for Semantic Unifiers}
+
+\author{Larry Diehl}
+\date{\today}
+
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage[hscale=0.7,vscale=0.8]{geometry}
+
+\begin{document}
+
+\maketitle
+
+\section{Summary}
+
+I used the new architecture (multiple fitness cases, arbitrary-term
+inputs, parameterization over combinators and rewrite-rules) to
+implement traditional boolean logic GP problems in this
+combinator-based (Hilbert) system.
+
+I also changed much of the architecture in preparation for turning the
+project in, so I can make it runnable by command-line by someone other
+than myself. Previously I had hard-coded constants for algorithm
+parameters, which are now passed to the program as a problem
+description argument. The programs output has also been changed to fit
+within this new scheme. Additionally, I made a new problem-description
+DSL so I can input problems with multiple fitness cases and
+non-variable inputs, like the boolean problems mentioned above.
+Previously, the random seed was a hard-coded constant that I would
+manually change. Now, you can pass in a seed or let the program
+generate one and tell you what it used later.
+
+\end{document}
+
