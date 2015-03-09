@@ -24,7 +24,6 @@ data Options a = Options
   , maxGen :: Int
   , elitism :: Float
   , mutationRate :: Float
-  , hillMutationRate :: Float
   , minStruture :: Int
   , attempts :: Int
   , seed :: StdGen
@@ -97,7 +96,6 @@ randIndiv = do
 
 mutationByFitness :: Int -> Evo a Float
 mutationByFitness 0 = return 0.0
-mutationByFitness 1 = asks hillMutationRate
 mutationByFitness _ = asks mutationRate
 
 mutateIndiv :: Randomizable a => Indiv a -> Evo a (Indiv a)
@@ -150,7 +148,7 @@ crossoverGen ts ts' | otherwise = do
   else crossoverGen ts (insertIndiv t' ts')
 
 nextGen :: Randomizable a => Population a -> Population a -> Evo a (Population a)
-nextGen ts ts' = mutateGen =<< crossoverGen ts ts'
+nextGen ts ts' = crossoverGen ts ts'
 
 elites :: Population a -> Evo a (Population a)
 elites ts = do
@@ -185,7 +183,6 @@ defaultOpts = Options
   , maxGen = 30
   , elitism = 0.3
   , mutationRate = 0.0
-  , hillMutationRate = 0.0
   , minStruture = 15
   , attempts = 10
   , seed = mkStdGen 199
@@ -234,7 +231,7 @@ gens seed probs = do
   mapM_ printAttempts sols
   -- mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
 
-main = gens 199 combLogProbs
+main = gens 1337 combLogProbs
 
 ----------------------------------------------------------------------
 
