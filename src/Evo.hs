@@ -16,30 +16,24 @@ import Data.Bifunctor
 
 ----------------------------------------------------------------------
 
-maxInitDepth :: Int
-maxInitDepth = 20
-
-maxCrossDepth :: Int
-maxCrossDepth = 17
-
-popSize :: Int
-popSize = 1000
-
-maxGen :: Int
-maxGen = 30
-
-elitism :: Float
-elitism = 0.3
-
-mutationRate :: Float
-mutationRate = 0.0
-
-hillMutationRate :: Float
-hillMutationRate = 0.0
+data Options a = Options
+  { name :: String
+  , maxInitDepth :: Int
+  , maxCrossDepth :: Int
+  , popSize :: Int
+  , maxGen :: Int
+  , elitism :: Float
+  , mutationRate :: Float
+  , hillMutationRate :: Float
+  , minStruture :: Int
+  , attempts :: Int
+  , seed :: StdGen
+  , cases :: Cases a
+  }
 
 ----------------------------------------------------------------------
 
-type Evo a = ReaderT (Cases a) (State StdGen)
+type Evo a = ReaderT (Options a) (State StdGen)
 type Gen = Int
 type Indiv a = (Tree a , Int)
 type Population a = [Indiv a]
@@ -61,8 +55,9 @@ randZip t = locate t <$> randInt (size t)
 
 mkIndiv :: Scorable a => Tree a -> Evo a (Indiv a)
 mkIndiv t = do
-  cases <- ask
-  return (score t cases)
+  minStruture <- asks minStruture
+  cases <- asks cases
+  return (score minStruture t cases)
 
 ----------------------------------------------------------------------
 
@@ -86,7 +81,7 @@ randTree' n = do
   else Branch <$> randTree' (pred n) <*> randTree' (pred n)
 
 randTree :: Enumerable a => Evo a (Tree a)
-randTree = randTree' maxInitDepth
+randTree = randTree' =<< asks maxInitDepth
 
 -- map depth (fst (runState (replicateM 5 (randTree :: Evo (Tree Comb))) (mkStdGen 7)))
 -- [1,10,0,2,2]
@@ -100,15 +95,16 @@ randIndiv = do
   t <- randTree
   mkIndiv t
 
-mutationByFitness :: Int -> Float
-mutationByFitness 0 = 0.0
-mutationByFitness 1 = hillMutationRate
-mutationByFitness _ = mutationRate
+mutationByFitness :: Int -> Evo a Float
+mutationByFitness 0 = return 0.0
+mutationByFitness 1 = asks hillMutationRate
+mutationByFitness _ = asks mutationRate
 
 mutateIndiv :: Randomizable a => Indiv a -> Evo a (Indiv a)
 mutateIndiv x@(t , i) = do
-  n <- randFloat
-  if n < mutationByFitness i
+  n  <- randFloat
+  n' <- mutationByFitness i
+  if n < n'
   then mkIndiv =<< mutate t
   else return x
 
@@ -117,7 +113,7 @@ randIndivs n | n <= 0 = return []
 randIndivs n | otherwise = insertIndiv <$> randIndiv <*> randIndivs (pred n)
 
 initial :: Randomizable a => Evo a (Population a)
-initial = randIndivs popSize
+initial = randIndivs =<< asks popSize
 
 select :: Randomizable a => Population a -> Evo a (Indiv a)
 select ts = do
@@ -135,8 +131,8 @@ breed ts = do
 insertIndiv :: Indiv a -> Population a -> Population a
 insertIndiv t ts = insertBy (\x y -> compare (snd x) (snd y)) t ts
 
-tooLarge :: Indiv a -> Bool
-tooLarge t = depth (fst t) > maxCrossDepth
+tooLarge :: Indiv a -> Evo a Bool
+tooLarge t = (depth (fst t) >) <$> asks maxCrossDepth
 
 isSolution :: Indiv a -> Bool
 isSolution t = snd t == 0
@@ -148,73 +144,97 @@ crossoverGen :: Randomizable a => Population a -> Population a -> Evo a (Populat
 crossoverGen ts ts' | length ts <= length ts' = return ts'
 crossoverGen ts ts' | otherwise = do
   t' <- breed ts
-  if tooLarge t'
+  cond <- tooLarge t'
+  if cond
   then crossoverGen ts ts'
   else crossoverGen ts (insertIndiv t' ts')
 
 nextGen :: Randomizable a => Population a -> Population a -> Evo a (Population a)
 nextGen ts ts' = mutateGen =<< crossoverGen ts ts'
 
+elites :: Population a -> Evo a (Population a)
+elites ts = do
+  elitism <- asks elitism
+  return $ take (truncate (fromIntegral (length ts) * elitism)) ts
+
 evolve :: Randomizable a => Gen -> Population a -> Evo a (Gen , Population a)
-evolve n ts | n >= maxGen || isSolution (head ts) = return (n , ts)
--- evolve n ts | otherwise = evolve (succ n) =<< initial
-evolve n ts | otherwise = evolve (succ n) =<< nextGen ts elite
-  where
-  -- elite = take 1 ts
-  elite = take (truncate (fromIntegral (length ts) * elitism)) ts
+evolve n ts = do
+  maxGen <- asks maxGen
+  if n >= maxGen || isSolution (head ts)
+  then return (n , ts)
+  else evolve (succ n) =<< nextGen ts =<< elites ts
+  -- else evolve (succ n) =<< initial
 
 evo :: Randomizable a => Evo a (Gen , Population a)
 evo = evolve 0 =<< initial
 
-runEvo :: Randomizable a => Cases a -> Int -> (Gen , Population a)
-runEvo cases i = fst $ runState (runReaderT evo cases) (mkStdGen i)
+runEvo :: Randomizable a => Options a -> [(Gen , Population a)]
+runEvo opts = map (\r -> fst $ runState (runReaderT evo opts') r) rs
+  where
+  rs = map mkStdGen $ take (attempts opts) $ randoms (seed opts)
+  opts' = opts { cases = map (bimap id norm) (cases opts) }
+
+----------------------------------------------------------------------
+
+defaultOpts :: Options a
+defaultOpts = Options
+  { name = "Untitled"
+  , maxInitDepth = 20
+  , maxCrossDepth = 17
+  , popSize = 1000
+  , maxGen = 30
+  , elitism = 0.3
+  , mutationRate = 0.0
+  , hillMutationRate = 0.0
+  , minStruture = 15
+  , attempts = 10
+  , seed = mkStdGen 199
+  , cases = []
+  }
 
 ----------------------------------------------------------------------
 
 type Vars = String
-type Problem a = [Int] -> Sol a
-type Problems a = [Problem a]
-
-data Sol a = Sol
-  { name   :: String
-  , args   :: [String]
-  , target :: Exp a
-  , runs   :: [(Gen , [Int])]
-  } deriving Show
+type Problem a = Reader StdGen (Sol a (Population a))
+type Problems a = Reader StdGen [Sol a (Population a)]
+type Sol a b = (Options a , [(Gen , b)])
 
 prob :: Randomizable a => String -> Vars -> Exp a -> Problem a
-prob name args e rs = Sol
-  { name = name
-  , args = args'
-  , target = e
-  , runs = map runner rs
-  } where
+prob name args e = do
+  opts' <- opts <$> ask
+  return (opts' , runEvo opts')
+  where
   args' = map (:[]) args
-  runner = bimap id (map snd) . runEvo [(map Var args' , e)]
+  opts = \ seed -> defaultOpts
+    { name = name
+    , seed = seed
+    , cases = [(map Var args' , e)]
+    }
 
-attempts = 10
-seed = 199
+probs = mapM ask
+
+-- map (bimap id (map snd))
 
 -- printAttempt :: (Gen , [Int]) -> IO ()
 -- printAttempt (n , xs) = do
 --   putStrLn $ "Generation " ++ show n
 --   putStrLn $ show xs
 
-printAttempts :: Sol a -> IO ()
-printAttempts sol = do
-  putStrLn $ name sol ++ " : " ++ show (map fst sorted) ++ " = " ++ show (sum (map fst (runs sol)))
+printAttempts :: Sol a b -> IO ()
+printAttempts (opts , sol) = do
+  putStrLn $ (name opts) ++ " : " ++ show (map fst sorted) ++ " = " ++ show (sum (map fst sol))
   -- putStrLn $ show $ (snd . head) sorted
   where
-  sorted = sortBy (\ x y -> compare (fst x) (fst y)) (runs sol)
+  sorted = sortBy (\ x y -> compare (fst x) (fst y)) sol
 
-gens :: Problems a -> IO ()
-gens probs = do
-  let rs = take attempts $ randoms (mkStdGen seed)
-  let ns = map (\f -> f rs) probs
-  mapM_ printAttempts ns
+gens :: Int -> Problems a -> IO ()
+gens seed probs = do
+  let sols  = runReader probs (mkStdGen seed)
+  -- let sols' = map (bimap id (map snd)) sols
+  mapM_ printAttempts sols
   -- mapM_ printAttempt (sortBy (\x y -> compare (fst y) (fst x)) ns)
 
-main = gens combLogProbs
+main = gens 199 combLogProbs
 
 ----------------------------------------------------------------------
 
@@ -222,7 +242,7 @@ main = gens combLogProbs
 -- http://www.iep.utm.edu/lambda-calculi
 
 cboolProbs :: Problems Comb
-cboolProbs =
+cboolProbs = probs
   [ prob "true"  "ab"  $ "a"
   , prob "false" "ab"  $ "b"
   , prob "and"   "pq"  $ "p" :@: "q" :@: "p"
@@ -233,7 +253,7 @@ cboolProbs =
   ]
 
 cnatProbs :: Problems Comb
-cnatProbs =
+cnatProbs = probs
   [ prob "zero"  "fx"   $ "x"
   , prob "one"   "fx"   $ "f" :@: "x"
   , prob "two"   "fx"   $ "f" :@: ("f" :@: "x")
@@ -246,14 +266,14 @@ cnatProbs =
   ]
 
 cpairProbs :: Problems Comb
-cpairProbs =
+cpairProbs = probs
   [ prob "pair"   "xyz" $ "z" :@: "x" :@: "y"
   , prob "first"  "p"   $ "p" :@: _true
   , prob "second" "p"   $ "p" :@: _false
   ]
 
 clistProbs :: Problems Comb
-clistProbs =
+clistProbs = probs
   [ prob "nil"    "cn"   $ "n"
   , prob "isnil"  "l"    $ "l" :@: (_K :@: _K :@: _false) :@: _true
   , prob "cons"   "htcn" $ "c" :@: "h" :@: ("t" :@: "c" :@: "n")
@@ -264,7 +284,7 @@ clistProbs =
 -- http://www.angelfire.com/tx4/cus/combinator/birds.html
 
 combLogProbs :: Problems Comb
-combLogProbs =
+combLogProbs = probs
  [ prob "B"     "abc"     $ "a" :@: ("b" :@: "c")
  , prob "B1"    "abcd"    $ "a" :@: ("b" :@: "c" :@: "d")
  , prob "B2"    "abcde"   $ "a" :@: ("b" :@: "c" :@: "d" :@: "e")

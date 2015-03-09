@@ -12,11 +12,6 @@ import Data.String
 
 ----------------------------------------------------------------------
 
-minStruture :: Int
-minStruture = 15
-
-----------------------------------------------------------------------
-
 data SK = S' | K'
   deriving (Show,Read,Eq,Ord,Enum,Bounded)
 
@@ -171,18 +166,17 @@ type Scorable a = (Eq a, Contractible a)
 type Case a = (Args a, Exp a)
 type Cases a = [Case a]
 
-score :: Scorable a => Tree a -> Cases a -> (Tree a , Int)
-score t xs = (t' , foldl (\acc x -> acc + score1 t x) 0 xs)
+score :: Scorable a => Int -> Tree a -> Cases a -> (Tree a , Int)
+score min t xs = (t' , foldl (\acc x -> acc + score1 min t x) 0 xs)
   where
   t' = fromExp (norm (toExp t))
 
-score1 :: Scorable a => Tree a -> Case a -> Int
-score1 t (args, e2) = diff lhs rhs * weight
+score1 :: Scorable a => Int -> Tree a -> Case a -> Int
+score1 min t (args, rhs) = diff lhs rhs * weight
   where
   e1 = toExp t
   lhs = norm (e1 `apply` args)
-  rhs = norm e2
   structure = leaves t
-  weight = if structure >= minStruture then 1 else minStruture - structure + 1
+  weight = if structure >= min then 1 else min - structure + 1
 
 ----------------------------------------------------------------------
