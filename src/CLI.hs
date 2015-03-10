@@ -30,11 +30,13 @@ options :: [OptDescr (OptTrans a)]
 options =
   [ option "h" "help" "display this message"
       (NoArg (\ opts -> opts { category = "help" }))
+  , option "r" "random" "random program generation"
+      (NoArg (\ opts -> opts { rand = True }))
   , option "c" "category" "category of problem"
-      (OptArg (maybe id (\ str opts -> opts { category = str })) "string")
+      (OptArg (maybe id (\ str opts -> opts { category = str })) "category")
   , option "n" "name" "name of problem in a category"
       (OptArg (maybe id (\ str opts -> opts { name = str })) "string")
-  , option "r" "random-seed" "random number seed"
+  , option "s" "seed" "random number seed"
       (OptArg (maybe id (\ n opts -> opts { seed = mkStdGen (read n) })) "number")
   , option "a" "attempts" "number of runs"
       (OptArg (maybe id (\ n opts -> opts { attempts = read n })) "number")
@@ -46,7 +48,7 @@ options =
       (OptArg (maybe id (\ n opts -> opts { maxInitDepth = read n })) "number")
   , option "o" "max-cross-depth" "maximum crossover depth"
       (OptArg (maybe id (\ n opts -> opts { maxCrossDepth = read n })) "number")
-  , option "s" "min-structure" "mininum structure"
+  , option "u" "min-structure" "mininum structure"
       (OptArg (maybe id (\ n opts -> opts { minStruture = read n })) "number")
   , option "m" "mutation" "mutation rate"
       (OptArg (maybe id (\ n opts -> opts { mutationRate = read n / 100.0 })) "percent")

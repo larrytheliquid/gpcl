@@ -29,6 +29,7 @@ data Options a = Options
   , attempts :: Int
   , seed :: StdGen
   , cases :: Cases a
+  , rand :: Bool
   }
 
 ----------------------------------------------------------------------
@@ -159,10 +160,11 @@ elites ts = do
 evolve :: Randomizable a => Gen -> Population a -> Evo a (Gen , Population a)
 evolve n ts = do
   maxGen <- asks maxGen
+  rand <- asks rand
   if n >= maxGen || isSolution (head ts)
   then return (n , ts)
-  else evolve (succ n) =<< nextGen ts =<< elites ts
-  -- else evolve (succ n) =<< initial
+  else evolve (succ n) =<< strategy rand
+  where strategy rand = if rand then initial else (nextGen ts =<< elites ts)
 
 evo :: Randomizable a => Evo a (Gen , Population a)
 evo = evolve 0 =<< initial
@@ -189,6 +191,7 @@ defaultOpts = Options
   , attempts = 10
   , seed = mkStdGen 42
   , cases = []
+  , rand = False
   }
 
 ----------------------------------------------------------------------
