@@ -21,35 +21,31 @@ import Data.Maybe ( fromMaybe )
 
 ----------------------------------------------------------------------
 
-options :: [OptDescr (Options a -> Options a)]
+type OptTrans a = Options a -> Options a
+
+option :: String -> String -> ArgDescr (OptTrans a) -> OptDescr (OptTrans a)
+option name desc f = Option [head name] [name] f desc
+
+options :: [OptDescr (OptTrans a)]
 options =
-  [ Option ['n']     ["name"]
+  [ option "name" "name of problem"
       (OptArg (maybe id (\ name opts -> opts { name = name })) "string")
-      "name of problem"
-  , Option ['r']     ["random-seed"]
+  , option "random-seed" "random number seed"
       (OptArg (maybe id (\ n opts -> opts { seed = mkStdGen (read n) })) "number")
-      "random number seed"
-  , Option ['a']     ["attempts"]
+  , option "attempts" "number of runs"
       (OptArg (maybe id (\ n opts -> opts { attempts = read n })) "number")
-      "number of runs"
-  , Option ['p']     ["population"]
+  , option "population" "population size"
       (OptArg (maybe id (\ n opts -> opts { popSize = read n })) "number")
-      "population size"
-  , Option ['e']     ["elitism"]
+  , option "elitism" "elitism"
       (OptArg (maybe id (\ n opts -> opts { elitism = read n / 100.0 })) "percent")
-      "elitism"
-  , Option ['i']     ["max-init-depth"]
+  , option "max-init-depth" "maximum initial depth"
       (OptArg (maybe id (\ n opts -> opts { maxInitDepth = read n })) "number")
-      "maximum initial depth"
-  , Option ['c']     ["max-cross-depth"]
+  , option "max-cross-depth" "maximum crossover depth"
       (OptArg (maybe id (\ n opts -> opts { maxCrossDepth = read n })) "number")
-      "maximum crossover depth"
-  , Option ['s']     ["min-structure"]
+  , option "min-structure" "mininum structure"
       (OptArg (maybe id (\ n opts -> opts { minStruture = read n })) "number")
-      "mininum structure"
-  , Option ['m']     ["mutation"]
+  , option "mutation" "mutation rate"
       (OptArg (maybe id (\ n opts -> opts { mutationRate = read n / 100.0 })) "percent")
-      "mutation rate"
   ]
 
 parseOpts :: IO (Options a, [String])
