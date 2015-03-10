@@ -52,6 +52,8 @@ options =
       (OptArg (maybe id (\ n opts -> opts { mutationRate = read n / 100.0 })) "percent")
   ]
 
+-- TODO --name for detailed info
+
 parseOpts :: IO (Options a, [String])
 parseOpts = do
   argv <- getArgs
@@ -61,20 +63,23 @@ parseOpts = do
 
 usageBanner = usageInfo "Usage: cgp [OPTION...]" options
 
-categoryUsage cat = "category `" ++ cat ++ "' "
-  ++ "must be one of the following: \n"
-  ++ intercalate ", " categories
-  ++ "\nUsage: cgp --category[=string]\n"
+categoryUsage = "--category[=string] " ++ categoryMustBe
+
+categoryError cat = "category `" ++ cat ++ "' "
+  ++ categoryMustBe ++ "\n"
+
+categoryMustBe = "must be one of the following:\n"
+ ++ intercalate ", " categories
 
 main = do
   (opts , _) <- parseOpts
   case category opts of
-    x | x == "help" -> putStrLn usageBanner
+    x | x == "help" || x == "" -> putStrLn (usageBanner ++ "\n" ++ categoryUsage)
     x | x == churchBool -> gens opts cboolProbs
     x | x == churchNat -> gens opts cnatProbs
     x | x == churchPair -> gens opts cpairProbs
     x | x == churchList -> gens opts clistProbs
     x | x == combLog -> gens opts combLogProbs
-    unknown -> ioError (userError (categoryUsage unknown))
+    unknown -> ioError (userError (categoryError unknown))
 
 ----------------------------------------------------------------------
