@@ -28,7 +28,7 @@ prob name args e = do
   return (opts' , runEvo opts')
   where args' = map (:[]) args
 
-probs = mapM ask
+probs = sequence
 
 -- printAttempt :: (Gen , [Int]) -> IO ()
 -- printAttempt (n , xs) = do
