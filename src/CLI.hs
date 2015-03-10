@@ -32,7 +32,7 @@ options =
       (NoArg (\ opts -> opts { category = "help" }))
   , option "c" "category" "category of problem"
       (OptArg (maybe id (\ str opts -> opts { category = str })) "string")
-  , option "n" "name" "name of problem"
+  , option "n" "name" "name of problem in a category"
       (OptArg (maybe id (\ str opts -> opts { name = str })) "string")
   , option "r" "random-seed" "random number seed"
       (OptArg (maybe id (\ n opts -> opts { seed = mkStdGen (read n) })) "number")
