@@ -59,7 +59,7 @@ parseOpts = do
   argv <- getArgs
   case getOpt Permute options argv of
     (o,n,[]  ) -> return (foldl (flip id) defaultOpts o, n)
-    (_,_,errs) -> ioError (userError (concat errs ++ usageBanner))
+    (_,_,errs) -> ioError . userError $ concat errs ++ usageBanner
 
 usageBanner = usageInfo "Usage: cgp [OPTION...]" options
 
@@ -71,15 +71,27 @@ categoryError cat = "category `" ++ cat ++ "' "
 categoryMustBe = "must be one of the following:\n"
  ++ intercalate ", " categories
 
+nameError cat name names = "name `" ++ name
+  ++ "' for category `" ++ cat
+  ++ "' must be one of the following:\n"
+  ++ intercalate ", " names
+
+printProb :: Options a -> Problems a -> IO ()
+printProb opts@(null . name -> True) probs = evoProbs opts probs
+printProb opts@(name -> name) probs = case lookup name probs of
+  Just prob -> evoProb opts (name , prob)
+  Nothing -> ioError . userError $ nameError (category opts) name names
+  where names = map fst probs
+
 main = do
   (opts , _) <- parseOpts
   case category opts of
     x | x == "help" || x == "" -> putStrLn (usageBanner ++ "\n" ++ categoryUsage)
-    x | x == churchBool -> gens opts cboolProbs
-    x | x == churchNat -> gens opts cnatProbs
-    x | x == churchPair -> gens opts cpairProbs
-    x | x == churchList -> gens opts clistProbs
-    x | x == combLog -> gens opts combLogProbs
-    unknown -> ioError (userError (categoryError unknown))
+    x | x == churchBool -> printProb opts cboolProbs
+    x | x == churchNat -> printProb opts cnatProbs
+    x | x == churchPair -> printProb opts cpairProbs
+    x | x == churchList -> printProb opts clistProbs
+    x | x == combLog -> printProb opts combLogProbs
+    unknown -> ioError . userError $ categoryError unknown
 
 ----------------------------------------------------------------------

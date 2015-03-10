@@ -18,34 +18,46 @@ import Data.Bifunctor
 ----------------------------------------------------------------------
 
 type Vars = String
-type Problem a = Reader (Options a) (Sol a (Population a))
-type Problems a = Reader (Options a) [Sol a (Population a)]
+type Problem a = (String , Reader (Options a) (Sol a (Population a)))
+type Problems a = [Problem a]
 type Sol a b = (Options a , [(Gen , b)])
 
 prob :: Randomizable a => String -> Vars -> Exp a -> Problem a
-prob name args e = do
-  opts' <- asks $ \ opts -> opts { name = name , cases = [(map Var args' , e)] }
-  return (opts' , runEvo opts')
-  where args' = map (:[]) args
+prob name args e = (name , local updateOpts (asks solution))
+  where
+  args' = map (:[]) args
+  updateOpts = \ f -> f { name = name , cases = [(map Var args' , e)] }
+  solution = \ opts -> (opts , runEvo opts)
 
 probs :: Randomizable a => String -> [Problem a] -> Problems a
-probs cat = local (\ opts -> opts { category = cat }) . sequence
+probs category = map (bimap id updateOpts)
+  where
+  updateOpts = local (\ opts -> opts { category = category })
 
--- printAttempt :: (Gen , [Int]) -> IO ()
--- printAttempt (n , xs) = do
---   putStrLn $ "Generation " ++ show n
---   putStrLn $ show xs
-
-printAttempts :: Sol a b -> IO ()
-printAttempts (opts , sol) = do
-  putStrLn $ (name opts) ++ " : " ++ show (map fst sorted) ++ " = " ++ show (sum (map fst sol))
+printOverview :: Sol a b -> IO ()
+printOverview (opts , sols) = do
+  putStrLn $ (name opts) ++ " : " ++ show (map fst sorted) ++ " = " ++ show (sum (map fst sols))
   -- putStrLn $ show $ (snd . head) sorted
-  where sorted = sortBy (\ x y -> compare (fst x) (fst y)) sol
+  where sorted = sortBy (\ x y -> compare (fst x) (fst y)) sols
 
-gens :: Options a -> Problems a -> IO ()
-gens opts probs = mapM_ printAttempts sols
-  where sols = runReader probs opts
-  -- let sols' = map (bimap id (map snd)) sols
+evoProbs :: Options a -> Problems a -> IO ()
+evoProbs opts probs = mapM_ printOverview sols
+  where sols = map (flip runReader opts . snd) probs
+
+----------------------------------------------------------------------
+
+printDetail :: (Gen , Population a) -> IO ()
+printDetail (gen , (map snd -> ts)) = do
+  putStrLn $ "Final Generation: " ++ show gen
+  putStrLn $ show ts
+
+printDetails :: Sol a (Population a) -> IO ()
+printDetails (opts , sols) = mapM_ printDetail sorted
+  where sorted = sortBy (\ x y -> compare (fst x) (fst y)) sols
+
+evoProb :: Options a -> Problem a -> IO ()
+evoProb opts prob = printDetails sol
+  where sol = runReader (snd prob) opts
 
 ----------------------------------------------------------------------
 
