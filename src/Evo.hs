@@ -150,7 +150,7 @@ crossoverGen ts ts' | otherwise = do
   else crossoverGen ts (insertIndiv t' ts')
 
 nextGen :: Randomizable a => Population a -> Population a -> Evo a (Population a)
-nextGen ts ts' = crossoverGen ts ts'
+nextGen ts ts' = mutateGen =<< crossoverGen ts ts'
 
 elites :: Population a -> Evo a (Population a)
 elites ts = do
