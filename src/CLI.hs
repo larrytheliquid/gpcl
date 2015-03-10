@@ -28,7 +28,9 @@ option tag name desc f = Option tag [name] f desc
 
 options :: [OptDescr (OptTrans a)]
 options =
-  [ option "c" "category" "category of problem"
+  [ option "h" "help" "display this message"
+      (NoArg (\ opts -> opts { category = "help" }))
+  , option "c" "category" "category of problem"
       (OptArg (maybe id (\ str opts -> opts { category = str })) "string")
   , option "n" "name" "name of problem"
       (OptArg (maybe id (\ str opts -> opts { name = str })) "string")
@@ -55,17 +57,24 @@ parseOpts = do
   argv <- getArgs
   case getOpt Permute options argv of
     (o,n,[]  ) -> return (foldl (flip id) defaultOpts o, n)
-    (_,_,errs) -> ioError (userError (concat errs ++ usageInfo header options))
-  where header = "Usage: cgp [OPTION...]"
+    (_,_,errs) -> ioError (userError (concat errs ++ usageBanner))
+
+usageBanner = usageInfo "Usage: cgp [OPTION...]" options
+
+categoryUsage cat = "category `" ++ cat ++ "' "
+  ++ "must be one of the following: \n"
+  ++ intercalate ", " categories
+  ++ "\nUsage: cgp --category[=string]\n"
 
 main = do
   (opts , _) <- parseOpts
   case category opts of
+    x | x == "help" -> putStrLn usageBanner
     x | x == churchBool -> gens opts cboolProbs
     x | x == churchNat -> gens opts cnatProbs
     x | x == churchPair -> gens opts cpairProbs
     x | x == churchList -> gens opts clistProbs
     x | x == combLog -> gens opts combLogProbs
-    unknown -> putStrLn $ "Unknown problem category: '" ++ unknown ++ "'"
+    unknown -> ioError (userError (categoryUsage unknown))
 
 ----------------------------------------------------------------------

@@ -58,6 +58,8 @@ churchPair = "church-pair"
 churchList = "church-list"
 combLog = "comb-log"
 
+categories = [churchBool, churchNat, churchPair, churchList, combLog]
+
 cboolProbs :: Problems Comb
 cboolProbs = probs churchBool
   [ prob "true"  "ab"  $ "a"
