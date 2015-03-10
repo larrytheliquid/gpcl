@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ghc -O2 -isrc -outputdir tmp -o cgp src/CLI.hs # && ./cgp

@@ -1,3 +1,0 @@
-#!/bin/sh
-
-ghc -O2 -isrc -outputdir tmp -o run-evo src/Evo.hs && ./run-evo
