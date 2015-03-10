@@ -17,7 +17,8 @@ import Data.Bifunctor
 ----------------------------------------------------------------------
 
 data Options a = Options
-  { name :: String
+  { category :: String
+  , name :: String
   , maxInitDepth :: Int
   , maxCrossDepth :: Int
   , popSize :: Int
@@ -176,7 +177,8 @@ runEvo opts = map (\r -> fst $ runState (runReaderT evo opts') r) rs
 
 defaultOpts :: Options a
 defaultOpts = Options
-  { name = "Untitled"
+  { category = ""
+  , name = ""
   , maxInitDepth = 20
   , maxCrossDepth = 17
   , popSize = 1000

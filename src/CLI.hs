@@ -23,28 +23,30 @@ import Data.Maybe ( fromMaybe )
 
 type OptTrans a = Options a -> Options a
 
-option :: String -> String -> ArgDescr (OptTrans a) -> OptDescr (OptTrans a)
-option name desc f = Option [head name] [name] f desc
+option :: String -> String -> String -> ArgDescr (OptTrans a) -> OptDescr (OptTrans a)
+option tag name desc f = Option tag [name] f desc
 
 options :: [OptDescr (OptTrans a)]
 options =
-  [ option "name" "name of problem"
-      (OptArg (maybe id (\ name opts -> opts { name = name })) "string")
-  , option "random-seed" "random number seed"
+  [ option "c" "category" "category of problem"
+      (OptArg (maybe id (\ str opts -> opts { category = str })) "string")
+  , option "n" "name" "name of problem"
+      (OptArg (maybe id (\ str opts -> opts { name = str })) "string")
+  , option "r" "random-seed" "random number seed"
       (OptArg (maybe id (\ n opts -> opts { seed = mkStdGen (read n) })) "number")
-  , option "attempts" "number of runs"
+  , option "a" "attempts" "number of runs"
       (OptArg (maybe id (\ n opts -> opts { attempts = read n })) "number")
-  , option "population" "population size"
+  , option "p" "population" "population size"
       (OptArg (maybe id (\ n opts -> opts { popSize = read n })) "number")
-  , option "elitism" "elitism"
+  , option "e" "elitism" "elitism"
       (OptArg (maybe id (\ n opts -> opts { elitism = read n / 100.0 })) "percent")
-  , option "max-init-depth" "maximum initial depth"
+  , option "i" "max-init-depth" "maximum initial depth"
       (OptArg (maybe id (\ n opts -> opts { maxInitDepth = read n })) "number")
-  , option "max-cross-depth" "maximum crossover depth"
+  , option "o" "max-cross-depth" "maximum crossover depth"
       (OptArg (maybe id (\ n opts -> opts { maxCrossDepth = read n })) "number")
-  , option "min-structure" "mininum structure"
+  , option "s" "min-structure" "mininum structure"
       (OptArg (maybe id (\ n opts -> opts { minStruture = read n })) "number")
-  , option "mutation" "mutation rate"
+  , option "m" "mutation" "mutation rate"
       (OptArg (maybe id (\ n opts -> opts { mutationRate = read n / 100.0 })) "percent")
   ]
 
@@ -58,6 +60,12 @@ parseOpts = do
 
 main = do
   (opts , _) <- parseOpts
-  gens opts cnatProbs
+  case category opts of
+    x | x == churchBool -> gens opts cboolProbs
+    x | x == churchNat -> gens opts cnatProbs
+    x | x == churchPair -> gens opts cpairProbs
+    x | x == churchList -> gens opts clistProbs
+    x | x == combLog -> gens opts combLogProbs
+    unknown -> putStrLn $ "Unknown problem category: '" ++ unknown ++ "'"
 
 ----------------------------------------------------------------------

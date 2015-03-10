@@ -28,7 +28,8 @@ prob name args e = do
   return (opts' , runEvo opts')
   where args' = map (:[]) args
 
-probs = sequence
+probs :: Randomizable a => String -> [Problem a] -> Problems a
+probs cat = local (\ opts -> opts { category = cat }) . sequence
 
 -- printAttempt :: (Gen , [Int]) -> IO ()
 -- printAttempt (n , xs) = do
@@ -51,8 +52,14 @@ gens opts probs = mapM_ printAttempts sols
 -- http://en.wikipedia.org/wiki/Church_encoding#Church_Booleans
 -- http://www.iep.utm.edu/lambda-calculi
 
+churchBool = "church-bool"
+churchNat = "church-nat"
+churchPair = "church-pair"
+churchList = "church-list"
+combLog = "comb-log"
+
 cboolProbs :: Problems Comb
-cboolProbs = probs
+cboolProbs = probs churchBool
   [ prob "true"  "ab"  $ "a"
   , prob "false" "ab"  $ "b"
   , prob "and"   "pq"  $ "p" :@: "q" :@: "p"
@@ -63,7 +70,7 @@ cboolProbs = probs
   ]
 
 cnatProbs :: Problems Comb
-cnatProbs = probs
+cnatProbs = probs churchNat
   [ prob "zero"  "fx"   $ "x"
   , prob "one"   "fx"   $ "f" :@: "x"
   , prob "two"   "fx"   $ "f" :@: ("f" :@: "x")
@@ -76,14 +83,14 @@ cnatProbs = probs
   ]
 
 cpairProbs :: Problems Comb
-cpairProbs = probs
+cpairProbs = probs churchPair
   [ prob "pair"   "xyz" $ "z" :@: "x" :@: "y"
   , prob "first"  "p"   $ "p" :@: _true
   , prob "second" "p"   $ "p" :@: _false
   ]
 
 clistProbs :: Problems Comb
-clistProbs = probs
+clistProbs = probs churchList
   [ prob "nil"    "cn"   $ "n"
   , prob "isnil"  "l"    $ "l" :@: (_K :@: _K :@: _false) :@: _true
   , prob "cons"   "htcn" $ "c" :@: "h" :@: ("t" :@: "c" :@: "n")
@@ -94,7 +101,7 @@ clistProbs = probs
 -- http://www.angelfire.com/tx4/cus/combinator/birds.html
 
 combLogProbs :: Problems Comb
-combLogProbs = probs
+combLogProbs = probs combLog
  [ prob "B"     "abc"     $ "a" :@: ("b" :@: "c")
  , prob "B1"    "abcd"    $ "a" :@: ("b" :@: "c" :@: "d")
  , prob "B2"    "abcde"   $ "a" :@: ("b" :@: "c" :@: "d" :@: "e")
