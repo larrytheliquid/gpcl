@@ -35,7 +35,7 @@ options =
   , option "n" "normalize" "partially normalize population"
       (NoArg (\ opts -> opts { normalize = True }))
   , option "c" "category" "category of problems"
-      (OptArg (maybe id (\ str opts -> opts { category = str })) "category")
+      (OptArg (maybe id (\ str opts -> opts { category = str })) "string")
   , option "p" "problem" "problem in a category"
       (OptArg (maybe id (\ str opts -> opts { name = str })) "string")
   , option "s" "seed" "random number seed"
