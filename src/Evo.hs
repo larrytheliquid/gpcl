@@ -148,10 +148,7 @@ crossoverGen :: Randomizable a => Population a -> Population a -> Evo a (Populat
 crossoverGen ts ts' | length ts <= length ts' = return ts'
 crossoverGen ts ts' | otherwise = do
   t' <- breed ts
-  cond <- tooLarge t'
-  if cond
-  then error "No no no no!"
-  else crossoverGen ts (insertIndiv t' ts')
+  crossoverGen ts (insertIndiv t' ts')
 
 nextGen :: Randomizable a => Population a -> Population a -> Evo a (Population a)
 nextGen ts ts' = mutateGen =<< crossoverGen ts ts'
@@ -165,13 +162,9 @@ evolve :: Randomizable a => Gen -> Population a -> Evo a (Gen , Population a)
 evolve n ts = do
   maxGen <- asks maxGen
   rand <- asks rand
-  cond <- any (== True) <$> mapM tooLarge ts
-  if cond
-  then error ("Gen " ++ show n ++ "\n" ++ show (sort (map (depth . fst) ts)))
-  else
-    (if n >= maxGen || isSolution (head ts)
-    then return (n , ts)
-    else evolve (succ n) =<< strategy rand)
+  if n >= maxGen || isSolution (head ts)
+  then return (n , ts)
+  else evolve (succ n) =<< strategy rand
   where strategy rand = if rand then initial else (nextGen ts =<< elites ts)
 
 evo :: Randomizable a => Evo a (Gen , Population a)
