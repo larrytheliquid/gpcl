@@ -65,6 +65,9 @@ goRoot z | otherwise = goRoot (goUp z)
 currentTree :: Zipper a -> Tree a
 currentTree = fst
 
+currentDepth :: Zipper a -> Int
+currentDepth = length . snd
+
 rootTree :: Zipper a -> Tree a
 rootTree = currentTree . goRoot
 

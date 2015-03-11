@@ -54,11 +54,15 @@ randElem xs = (xs !!) <$> randInt (length xs)
 randZip :: Tree a -> Evo a (Zipper a)
 randZip t = locate t <$> randInt (size t)
 
+randBoundedZip :: Int -> Tree a -> Evo a (Zipper a)
+randBoundedZip bound t = (zs !!) <$> randInt (length zs)
+  where zs = filter ((<= bound) . depth . fst) (traverse (root t))
+
 mkIndiv :: Scorable a => Tree a -> Evo a (Indiv a)
 mkIndiv t = do
   minStruture <- asks minStruture
   cases <- asks cases
-  return (score minStruture t cases)
+  return (t , score minStruture t cases)
 
 ----------------------------------------------------------------------
 
@@ -70,8 +74,9 @@ mutate t1 = do
 
 crossover :: Tree a -> Tree a -> Evo a (Tree a)
 crossover t1 t2 = do
+  maxCrossDepth <- asks maxCrossDepth
   z1 <- randZip t1
-  z2 <- randZip t2
+  z2 <- randBoundedZip (maxCrossDepth - currentDepth z1) t2
   return $ rootTree (replace (currentTree z2) z1)
 
 randTree' :: Enumerable a => Int -> Evo a (Tree a)
@@ -84,8 +89,7 @@ randTree' n = do
 randTree :: Enumerable a => Evo a (Tree a)
 randTree = randTree' =<< asks maxInitDepth
 
--- map depth (fst (runState (replicateM 5 (randTree :: Evo (Tree Comb))) (mkStdGen 7)))
--- [1,10,0,2,2]
+-- (reverse . sort) (map depth (fst (runState (runReaderT (replicateM 100 (randTree :: Evo Comb (Tree Comb))) defaultOpts) (mkStdGen 7))))
 
 ----------------------------------------------------------------------
 
@@ -146,7 +150,7 @@ crossoverGen ts ts' | otherwise = do
   t' <- breed ts
   cond <- tooLarge t'
   if cond
-  then crossoverGen ts ts'
+  then error "No no no no!"
   else crossoverGen ts (insertIndiv t' ts')
 
 nextGen :: Randomizable a => Population a -> Population a -> Evo a (Population a)
@@ -161,9 +165,13 @@ evolve :: Randomizable a => Gen -> Population a -> Evo a (Gen , Population a)
 evolve n ts = do
   maxGen <- asks maxGen
   rand <- asks rand
-  if n >= maxGen || isSolution (head ts)
-  then return (n , ts)
-  else evolve (succ n) =<< strategy rand
+  cond <- any (== True) <$> mapM tooLarge ts
+  if cond
+  then error ("Gen " ++ show n ++ "\n" ++ show (sort (map (depth . fst) ts)))
+  else
+    (if n >= maxGen || isSolution (head ts)
+    then return (n , ts)
+    else evolve (succ n) =<< strategy rand)
   where strategy rand = if rand then initial else (nextGen ts =<< elites ts)
 
 evo :: Randomizable a => Evo a (Gen , Population a)
@@ -177,11 +185,12 @@ runEvo opts = map (\r -> fst $ runState (runReaderT evo opts') r) rs
 
 ----------------------------------------------------------------------
 
+-- TODO check that initDepth is less than crossDepth
 defaultOpts :: Options a
 defaultOpts = Options
   { category = ""
   , name = ""
-  , maxInitDepth = 20
+  , maxInitDepth = 10
   , maxCrossDepth = 17
   , popSize = 1000
   , maxGen = 30
