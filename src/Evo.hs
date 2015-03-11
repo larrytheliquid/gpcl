@@ -29,7 +29,7 @@ data Options a = Options
   , attempts :: Int
   , seed :: Int
   , cases :: Cases a
-  , rand :: Bool
+  , randStrat :: Bool
   , normalize :: Bool
   }
 
@@ -164,11 +164,11 @@ elites ts = do
 evolve :: Randomizable a => Gen -> Population a -> Evo a (Gen , Population a)
 evolve n ts = do
   maxGen <- asks maxGen
-  rand <- asks rand
+  randStrat <- asks randStrat
   if n >= maxGen || isSolution (head ts)
   then return (n , ts)
-  else evolve (succ n) =<< strategy rand
-  where strategy rand = if rand then initial else (nextGen ts =<< elites ts)
+  else evolve (succ n) =<< strategy randStrat
+  where strategy randStrat = if randStrat then initial else (nextGen ts =<< elites ts)
 
 evo :: Randomizable a => Evo a (Gen , Population a)
 evo = evolve 0 =<< initial
@@ -195,7 +195,7 @@ defaultOpts = Options
   , attempts = 10
   , seed = 42
   , cases = []
-  , rand = False
+  , randStrat = False
   , normalize = False
   }
 

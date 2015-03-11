@@ -33,7 +33,7 @@ options =
   , option "d" "defaults" "print default options"
       (NoArg (\ opts -> opts { category = "defaults" }))
   , option "r" "random" "random program generation"
-      (NoArg (\ opts -> opts { rand = True }))
+      (NoArg (\ opts -> opts { randStrat = True }))
   , option "n" "normalize" "partially normalize population"
       (NoArg (\ opts -> opts { normalize = True }))
   , option "c" "category" "category of problems"
