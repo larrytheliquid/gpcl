@@ -80,6 +80,11 @@ nameError cat name names = "name `" ++ name
   ++ "' must be one of the following:\n"
   ++ intercalate ", " names
 
+maxDepthError init cross =
+     "Max initial depth (" ++ show init
+  ++ ") must be greater than max crossover depth ("
+  ++ show cross ++ ")"
+
 printProb :: Options a -> Problems a -> IO ()
 printProb opts@(null . name -> True) probs = evoProbs opts probs
 printProb opts@(name -> name) probs = case lookup name probs of
@@ -89,7 +94,9 @@ printProb opts@(name -> name) probs = case lookup name probs of
 
 main = do
   (opts , _) <- parseOpts
-  case category opts of
+  if maxInitDepth opts > maxCrossDepth opts
+  then ioError . userError $ maxDepthError (maxInitDepth opts) (maxCrossDepth opts)
+  else case category opts of
     x | x == "help" || x == "" -> putStrLn (usageBanner ++ "\n" ++ categoryUsage)
     x | x == churchBool -> printProb opts cboolProbs
     x | x == churchNat -> printProb opts cnatProbs

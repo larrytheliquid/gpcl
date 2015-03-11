@@ -180,7 +180,6 @@ runEvo opts = map (\r -> fst $ runState (runReaderT evo opts') r) rs
 
 ----------------------------------------------------------------------
 
--- TODO check that initDepth is less than crossDepth
 defaultOpts :: Options a
 defaultOpts = Options
   { category = ""
