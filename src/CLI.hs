@@ -46,10 +46,10 @@ options =
       (OptArg (maybe id (\ n opts -> opts { popSize = read n })) "number")
   , option "e" "elitism" "elitism"
       (OptArg (maybe id (\ n opts -> opts { elitism = read n / 100.0 })) "percent")
-  , option "i" "max-init-depth" "maximum initial depth"
+  , option "i" "max-init-depth" "maximum initial population depth"
       (OptArg (maybe id (\ n opts -> opts { maxInitDepth = read n })) "number")
-  , option "o" "max-cross-depth" "maximum crossover depth"
-      (OptArg (maybe id (\ n opts -> opts { maxCrossDepth = read n })) "number")
+  , option "g" "max-genetic-depth" "maximum genetic operation depth"
+      (OptArg (maybe id (\ n opts -> opts { maxGeneticDepth = read n })) "number")
   , option "u" "min-structure" "mininum structure"
       (OptArg (maybe id (\ n opts -> opts { minStruture = read n })) "number")
   , option "m" "mutation" "mutation rate"
@@ -82,7 +82,7 @@ nameError cat name names = "name `" ++ name
 
 maxDepthError init cross =
      "Max initial depth (" ++ show init
-  ++ ") must be greater than max crossover depth ("
+  ++ ") must be greater than max genetic depth ("
   ++ show cross ++ ")"
 
 printProb :: Options a -> Problems a -> IO ()
@@ -94,8 +94,8 @@ printProb opts@(name -> name) probs = case lookup name probs of
 
 main = do
   (opts , _) <- parseOpts
-  if maxInitDepth opts > maxCrossDepth opts
-  then ioError . userError $ maxDepthError (maxInitDepth opts) (maxCrossDepth opts)
+  if maxInitDepth opts > maxGeneticDepth opts
+  then ioError . userError $ maxDepthError (maxInitDepth opts) (maxGeneticDepth opts)
   else case category opts of
     x | x == "help" || x == "" -> putStrLn (usageBanner ++ "\n" ++ categoryUsage)
     x | x == churchBool -> printProb opts cboolProbs

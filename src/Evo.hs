@@ -20,7 +20,7 @@ data Options a = Options
   { category :: String
   , name :: String
   , maxInitDepth :: Int
-  , maxCrossDepth :: Int
+  , maxGeneticDepth :: Int
   , popSize :: Int
   , maxGen :: Int
   , elitism :: Float
@@ -70,15 +70,16 @@ mkIndiv t = do
 
 mutate :: Enumerable a => Tree a -> Evo a (Tree a)
 mutate t1 = do
+  maxGeneticDepth <- asks maxGeneticDepth
   z <- randZip t1
-  t2 <- randTree' (depth (currentTree z))
+  t2 <- randTree' (maxGeneticDepth - currentDepth z)
   return $ rootTree (replace t2 z)
 
 crossover :: Tree a -> Tree a -> Evo a (Tree a)
 crossover t1 t2 = do
-  maxCrossDepth <- asks maxCrossDepth
+  maxGeneticDepth <- asks maxGeneticDepth
   z1 <- randZip t1
-  z2 <- randBoundedZip (maxCrossDepth - currentDepth z1) t2
+  z2 <- randBoundedZip (maxGeneticDepth - currentDepth z1) t2
   return $ rootTree (replace (currentTree z2) z1)
 
 randTree' :: Enumerable a => Int -> Evo a (Tree a)
@@ -138,7 +139,7 @@ insertIndiv :: Indiv a -> Population a -> Population a
 insertIndiv t ts = insertBy (\x y -> compare (snd x) (snd y)) t ts
 
 tooLarge :: Indiv a -> Evo a Bool
-tooLarge t = (depth (fst t) >) <$> asks maxCrossDepth
+tooLarge t = (depth (fst t) >) <$> asks maxGeneticDepth
 
 isSolution :: Indiv a -> Bool
 isSolution t = snd t == 0
@@ -185,7 +186,7 @@ defaultOpts = Options
   { category = ""
   , name = ""
   , maxInitDepth = 10
-  , maxCrossDepth = 17
+  , maxGeneticDepth = 17
   , popSize = 1000
   , maxGen = 30
   , elitism = 0.3
