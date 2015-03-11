@@ -174,7 +174,7 @@ runEvo :: Randomizable a => Options a -> [(Gen , Population a)]
 runEvo opts = map (\r -> fst $ runState (runReaderT evo opts') r) rs
   where
   rs = map mkStdGen $ take (attempts opts) $ randoms (seed opts)
-  opts' = opts { cases = map (bimap id norm) (cases opts) }
+  opts' = opts { cases = map (bimap (map norm) norm) (cases opts) }
 
 ----------------------------------------------------------------------
 
