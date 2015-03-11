@@ -27,7 +27,8 @@ prob name args e = (name , local updateOpts (asks solution))
   where
   args' = map (:[]) args
   updateOpts = \ f -> f { name = name , cases = [(map Var args' , e)] }
-  solution = \ opts -> (opts , runEvo opts)
+  solution = \ opts ->
+    (opts , map (\ tss -> (pred (length tss) , head tss)) (runEvo opts))
 
 probs :: Randomizable a => String -> [Problem a] -> Problems a
 probs category = map (bimap id updateOpts)

@@ -161,19 +161,21 @@ elites ts = do
   elitism <- asks elitism
   return $ take (truncate (fromIntegral (length ts) * elitism)) ts
 
-evolve :: Randomizable a => Gen -> Population a -> Evo a (Gen , Population a)
-evolve n ts = do
+evolve :: Randomizable a => [Population a] -> Evo a [Population a]
+evolve tss = do
   maxGen <- asks maxGen
   randStrat <- asks randStrat
-  if n >= maxGen || isSolution (head ts)
-  then return (n , ts)
-  else evolve (succ n) =<< strategy randStrat
-  where strategy randStrat = if randStrat then initial else (nextGen ts =<< elites ts)
+  if pred (length tss) >= maxGen || isSolution (head ts)
+  then return tss
+  else evolve . (:tss) =<< strategy randStrat
+  where
+  strategy randStrat = if randStrat then initial else (nextGen ts =<< elites ts)
+  ts = head tss
 
-evo :: Randomizable a => Evo a (Gen , Population a)
-evo = evolve 0 =<< initial
+evo :: Randomizable a => Evo a [Population a]
+evo = evolve . (:[]) =<< initial
 
-runEvo :: Randomizable a => Options a -> [(Gen , Population a)]
+runEvo :: Randomizable a => Options a -> [[Population a]]
 runEvo opts = map (\r -> fst $ runState (runReaderT evo opts') r) rs
   where
   rs = map mkStdGen $ take (attempts opts) $ randoms (mkStdGen (seed opts))
