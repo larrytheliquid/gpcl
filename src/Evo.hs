@@ -30,6 +30,7 @@ data Options a = Options
   , seed :: StdGen
   , cases :: Cases a
   , rand :: Bool
+  , normalize :: Bool
   }
 
 ----------------------------------------------------------------------
@@ -62,7 +63,8 @@ mkIndiv :: Scorable a => Tree a -> Evo a (Indiv a)
 mkIndiv t = do
   minStruture <- asks minStruture
   cases <- asks cases
-  return (t , score minStruture t cases)
+  normalize <- asks normalize
+  return (score normalize minStruture t cases)
 
 ----------------------------------------------------------------------
 
@@ -194,6 +196,7 @@ defaultOpts = Options
   , seed = mkStdGen 42
   , cases = []
   , rand = False
+  , normalize = False
   }
 
 ----------------------------------------------------------------------

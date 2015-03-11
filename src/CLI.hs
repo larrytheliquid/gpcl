@@ -32,6 +32,8 @@ options =
       (NoArg (\ opts -> opts { category = "help" }))
   , option "r" "random" "random program generation"
       (NoArg (\ opts -> opts { rand = True }))
+  , option "n" "normalize" "partially normalize population"
+      (NoArg (\ opts -> opts { normalize = True }))
   , option "c" "category" "category of problems"
       (OptArg (maybe id (\ str opts -> opts { category = str })) "category")
   , option "p" "problem" "problem in a category"
