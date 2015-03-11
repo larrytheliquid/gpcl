@@ -27,7 +27,7 @@ data Options a = Options
   , mutationRate :: Float
   , minStruture :: Int
   , attempts :: Int
-  , seed :: StdGen
+  , seed :: Int
   , cases :: Cases a
   , rand :: Bool
   , normalize :: Bool
@@ -176,7 +176,7 @@ evo = evolve 0 =<< initial
 runEvo :: Randomizable a => Options a -> [(Gen , Population a)]
 runEvo opts = map (\r -> fst $ runState (runReaderT evo opts') r) rs
   where
-  rs = map mkStdGen $ take (attempts opts) $ randoms (seed opts)
+  rs = map mkStdGen $ take (attempts opts) $ randoms (mkStdGen (seed opts))
   opts' = opts { cases = map (bimap (map norm) norm) (cases opts) }
 
 ----------------------------------------------------------------------
@@ -193,7 +193,7 @@ defaultOpts = Options
   , mutationRate = 0.0
   , minStruture = 15
   , attempts = 10
-  , seed = mkStdGen 42
+  , seed = 42
   , cases = []
   , rand = False
   , normalize = False
