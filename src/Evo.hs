@@ -92,8 +92,6 @@ randTree' n = do
 randTree :: Enumerable a => Evo a (Tree a)
 randTree = randTree' =<< asks maxInitDepth
 
--- (reverse . sort) (map depth (fst (runState (runReaderT (replicateM 100 (randTree :: Evo Comb (Tree Comb))) defaultOpts) (mkStdGen 7))))
-
 ----------------------------------------------------------------------
 
 type Randomizable a = (Enum a, Bounded a, Eq a, Contractible a)
