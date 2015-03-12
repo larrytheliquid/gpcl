@@ -112,10 +112,13 @@ maxDepthError init cross =
   ++ ") must be greater than max genetic depth ("
   ++ show cross ++ ")"
 
-printProb :: Options a -> Problems a -> IO ()
-printProb opts@(null . name -> True) probs = evoProbs opts probs
+injOpts :: Options a -> Options b
+injOpts opts = opts { cases = [] }
+
+printProb :: Options a -> Problems b -> IO ()
+printProb opts@(null . name -> True) probs = evoProbs (injOpts opts) probs
 printProb opts@(name -> name) probs = case lookup name probs of
-  Just prob -> evoProb opts (name , prob)
+  Just prob -> evoProb (injOpts opts) (name , prob)
   Nothing -> ioError . userError $ nameError (category opts) name names
   where names = map fst probs
 
@@ -136,6 +139,7 @@ main = do
     x | x == churchPair -> printProb opts cpairProbs
     x | x == churchList -> printProb opts clistProbs
     x | x == combLog -> printProb opts combLogProbs
+    x | x == hilbertBool -> printProb opts hboolProbs
     unknown -> ioError . userError $ categoryError unknown
 
 ----------------------------------------------------------------------
