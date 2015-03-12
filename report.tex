@@ -145,7 +145,46 @@ can give multiple fitness cases (multiple equations), and we can apply
 arbitrary expressions (e.g. ``true'' instead of just variables) to the
 desired existential on the left-hand side.
 
+\subsection{Genetic Programming Algorithm}
 
+The GP algorithm is a mostly-standard GP implementation. The novelty
+(thanks to Kuchs) lies in the \textit{representation} of candidate
+solutions, and the \textit{fitness function}. Recall that the RHS of
+equations in problems can mention the universally quantified
+variables, but the LHS cannot. This restrictions allows for the
+candidate solutions to simply be abstract syntax trees with binary
+branches (representing function application) and atoms at the leaves
+(representing combinators). Notably, a leaf cannot mention a variable.
+
+To compute fitness, we reduce the RHS and compare it to the result of
+reducing the LHS after applying its arguments to the candidate
+existential variable solution. However, the comparison is not merely a
+binary comparison. Instead, it is a structural difference calculation
+of the two resulting abstract syntax trees. Furthermore, there is a
+weighting mechanism to assign higher fitness scores to solutions that
+do not have some minimum number of combinators at the leaves (this
+algorithm input is called the ``minimum structure'').
+
+\subsubsection{My Changes}
+
+Changes that I introduced into the algorithm include a 1-level
+tournament selection (pick a parent by comparing the fitness of two
+\textit{random} candidates)
+This is known to perform better than Kuchs' selection (pick a parent
+by selecting a candidate from the population with a bias towards the
+fitter-end of the spectrum).
+Additionally, Kuchs did not have mutation so I added it as an option
+for the user.
+I also added a novel option to partially evaluate population
+candidates during the algorithm run, thus removing bloat. Finally,
+Kuchs performed crossover by first crossing over parents, then
+recursively trying again if the maximum depth requirement was
+violated. I improved the algorithm by only choosing from crossover
+points that result in a child satisfying the maximum depth
+requirement. This is accomplished by filtering the depth of all
+subnodes of the second parent by whether they are
+less-than-or-equal-to the maximum depth minus the distance from the
+point of the first parent to the root.
 
 %% crossover over terms without variables, but fitness/problems can
 %%   mention variables
