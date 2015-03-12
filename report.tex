@@ -218,55 +218,10 @@ changes break them.
 
 \section{Code Statistics}
 
-\section{Code Appendix}
+\section*{Appendix}
+\appendix
 
-
-%% Last week I started testing GP evolving solutions to problems
-%% involving datatypes, but they were Church-encoded datatypes (i.e. they
-%% were represented using lambdas). This week I started to move the
-%% project towards being able to evolve solutions using primitive
-%% datatypes and operations over them. One way to extend combinatory
-%% logic to have extra primitives ends up beign Illative Combinatory
-%% Logic, which I thought I was going to use originally. However, there
-%% are tricky issues regarding logical consistency in the illative
-%% version, so what I ended up using was more like a Hilbert system
-%% (regular combinators like S+K and axioms, rather than strange
-%% combinators like $\Xi$ that can lead to inconsistency).
-
-%% In previous weeks I have tested evolving combinatory logic problems
-%% with S+K, S+K+I, S+K+B+C, and S+K+I+B+C. My project had the logic for
-%% combinator use hardcoded, so any such change required me to edit old
-%% code and recompile things. This week I changed my architecture so the
-%% base combinators, and their reduction semantics, is independent
-%% of the rest of the code (so I don't have to touch or recompile old
-%% code when testing a new axiomatic basis).
-
-%% I have also allowed problems to be supplied with multiple fitness
-%% cases, instead of just one. Additionally, the fitness cases are now
-%% parameterized over arbitrary terms instead of just variables.
-
-%% All of this work together has allowed me to specify a combinator set
-%% for boolean problems like the one below:
-
-%% \begin{verbatim}
-%% S x y z = x z (y z)
-%% K x y = x
-%% If True ct cf = ct
-%% If False ct cf = cf
-%% \end{verbatim}
-
-%% And I can now specify problems with multiple fitness cases and
-%% non-variable arguments like the one below for logical ``and''.
-
-%% \begin{verbatim}
-%% and True True = True
-%% and True False = False
-%% and False True = False
-%% and False False = False
-%% \end{verbatim}
-
-%% Now I need to test many such problems to see how well the Genetic
-%% Hilbert system is able to solve them.
+\section{Evo.hs}
 
 \end{document}
 
