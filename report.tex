@@ -121,11 +121,13 @@ To do so, I ended up using a Hilbert system. A Hilbert system replaces
 the standard implication introduction and elimination rules with the
 combinators S and K, and axiomatically extends the system with other
 native types. For example, below is the Hilbert system for a language
-with booleans.
+with booleans and the extra B and C combinators.
 
 \begin{align*}
 S ~ a ~ b ~ c &= a ~ c ~ (b ~ c)\\
 K ~ a ~ b &= a\\
+B ~ a ~ b ~ c &= a ~ (b ~ c)\\
+C ~ a ~ b ~ c &= a ~ c ~ b\\
 \n{If} ~ \n{true} ~ a ~ b &= a\\
 \n{If} ~ \n{false} ~ a ~ b &= b
 \end{align*}
@@ -192,9 +194,21 @@ point of the first parent to the root.
 
 I implemented all the functionality I set out to for the project, but
 I only tested boolean problems in the Hilbert system portion (I also wanted to
-test more boolean problems and numeric problems). Additionally, I
+test numeric problems). Additionally, I
 evaluated my results by manual inspection of output data, and I wanted
 to make some fancy graphs to more easily identify good learning.
+
+I was able to find a good set of parameters and combinator axioms to solve the
+combinatory problems, but not the Hilbert system boolean problems.
+Given more time, I would have liked to investigate changes to solve
+the Hilbert Booleans, such as: better problem-class-specific algorithm
+parameters, better combinator axioms, and perhaps an adjustment to the
+fitness score. Each Hilbert boolean problem equation has a single-atom
+RHS (true or false). Even though there is a weight for minimum
+structure solutions, it is easy to come up with a fitness score of 1
+by making a big combinator tree that ends with
+``K true'' or ``K false'' near a leaf. Solving these kinds of problems
+would require fitness to discourage those kinds of solutions.
 
 \section{Unanticipated Obstacles}
 
