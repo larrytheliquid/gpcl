@@ -239,6 +239,8 @@ changes break them.
 
 \section{Evo.hs}
 
+Most of the AI is the GP algorithm implemented in this file.
+
 \begin{lstlisting}
 {-# LANGUAGE
     ViewPatterns
@@ -438,6 +440,638 @@ defaultOpts = Options
   , randStrat = False
   , normalize = False
   }
+
+----------------------------------------------------------------------
+\end{lstlisting}
+
+\section{Exp.hs}
+
+This file contains the expression grammar, and the scoring/fitness
+function used by GP.
+
+\begin{lstlisting}
+{-# LANGUAGE
+    OverloadedStrings
+  , ViewPatterns
+  , ConstraintKinds
+  #-}
+
+
+module Exp where
+import Tree
+import Data.Maybe
+import Data.String
+
+----------------------------------------------------------------------
+
+data SK = S' | K'
+  deriving (Show,Read,Eq,Ord,Enum,Bounded)
+
+data Boolean = S_b | K_b | C_b | B_b | If_b | True_b | False_b
+  deriving (Show,Read,Eq,Ord,Enum,Bounded)
+
+data Comb = S | K | I | C | B
+  deriving (Show,Read,Eq,Ord,Enum,Bounded)
+
+infixl 5 :@:
+data Exp a = Exp a :@: Exp a | Var String | Prim a
+  deriving (Show,Read,Eq)
+
+class Contractible a where
+  contract :: Exp a -> Maybe (Exp a)
+
+instance Contractible SK where
+  contract (Prim S' :@: x :@: y :@: z) = Just $ x :@: z :@: (y :@: z)
+  contract (Prim K' :@: x :@: _) = Just x
+  contract _ = Nothing
+
+instance Contractible Comb where
+  contract (Prim S :@: x :@: y :@: z) = Just $ x :@: z :@: (y :@: z)
+  contract (Prim K :@: x :@: _) = Just x
+  contract (Prim I :@: x) = Just x
+  contract (Prim C :@: x :@: y :@: z) = Just $ x :@: z :@: y
+  contract (Prim B :@: x :@: y :@: z) = Just $ x :@: (y :@: z)
+  contract _ = Nothing
+
+instance Contractible Boolean where
+  contract (Prim S_b :@: x :@: y :@: z) = Just $ x :@: z :@: (y :@: z)
+  contract (Prim K_b :@: x :@: _) = Just x
+  contract (Prim C_b :@: x :@: y :@: z) = Just $ x :@: z :@: y
+  contract (Prim B_b :@: x :@: y :@: z) = Just $ x :@: (y :@: z)
+  contract (Prim If_b :@: Prim True_b :@: ct :@: cf) = Just $ ct
+  contract (Prim If_b :@: Prim False_b :@: ct :@: cf) = Just $ cf
+  contract _ = Nothing
+
+----------------------------------------------------------------------
+
+instance IsString (Exp a) where
+  fromString = Var
+
+----------------------------------------------------------------------
+
+type Enumerable a = (Enum a, Bounded a)
+
+enum :: Enumerable a => [a]
+enum = enumFromTo minBound maxBound
+
+----------------------------------------------------------------------
+
+nodes :: Exp a -> Int
+nodes (Var _) = 1
+nodes (Prim _) = 1
+nodes (x :@: y) = 1 + nodes x + nodes y
+
+combs :: Exp a -> Int
+combs (Var _) = 0
+combs (Prim _) = 1
+combs (x :@: y) = nodes x + nodes y
+
+----------------------------------------------------------------------
+
+type Args a = [Exp a]
+apply :: Exp a -> Args a -> Exp a
+apply = foldl (:@:)
+
+----------------------------------------------------------------------
+
+_S :: Exp Comb
+_S = Prim S
+
+_K :: Exp Comb
+_K = Prim K
+
+_I :: Exp Comb
+_I = Prim I
+-- _I = _S :@: _K :@: _K
+
+_B :: Exp Comb
+_B = Prim B
+
+_C :: Exp Comb
+_C = Prim C
+
+_T :: Exp Comb
+-- _T = _S :@: (_K :@: (_S :@: _I)) :@: _K
+_T = _C :@: _I
+
+_T' :: Exp Comb
+_T' = _S :@: (_K :@: (_S :@: _I)) :@: (_S :@: (_K :@: _K) :@: _I)
+
+_O :: Exp Comb
+_O = _S :@: _I :@: _I :@: (_S :@: _I :@: _I)
+
+_true :: Exp Comb
+_true = _K
+
+_false :: Exp Comb
+_false = _K :@: _I
+
+_pair :: Exp Comb
+_pair = _B :@: _C :@: _T
+
+_first :: Exp Comb
+_first = _T :@: _true
+
+_second :: Exp Comb
+_second = _T :@: _false
+
+----------------------------------------------------------------------
+
+toExp :: Tree a -> Exp a
+toExp (Branch l r) = toExp l :@: toExp r
+toExp (Leaf c) = Prim c
+
+fromExp :: Exp a -> Tree a
+fromExp (l :@: r) = Branch (fromExp l) (fromExp r)
+fromExp (Prim c) = Leaf c
+fromExp (Var _) = error "Variables not allowed"
+
+step :: Contractible a => Exp a -> Maybe (Exp a)
+step x@(Var _) = Just x
+step x@(Prim _) = Just x
+step (contract -> Just x) = Just x
+step (x :@: y) = case (step x , step y) of
+  (Just x' , Just y') -> Just (x' :@: y')
+  (Just x' , Nothing) -> Just (x' :@: y)
+  (Nothing , Just y') -> Just (x :@: y')
+  (Nothing , Nothing) -> Nothing
+
+stepTo :: Contractible a => Int -> Exp a -> Exp a
+stepTo 0 x = x
+stepTo n x = maybe x (stepTo (pred n)) (step x)
+
+norm :: Contractible a => Exp a -> Exp a
+norm = stepTo 20
+
+----------------------------------------------------------------------
+
+diff :: Eq a => Exp a -> Exp a -> Int
+diff (Var  x) (Var  y) | x == y = 0
+diff (Prim x) (Prim y) | x == y = 0
+diff (x1 :@: y1) (x2 :@: y2) = diff x1 x2 + diff y1 y2
+diff x y = succ (abs (nodes x - nodes y))
+
+type Scorable a = (Eq a, Contractible a)
+type Case a = (Args a, Exp a)
+type Cases a = [Case a]
+
+score :: Scorable a => Bool -> Int -> Tree a -> Cases a -> (Tree a , Int)
+score shouldNorm min t xs = (term , fitness)
+  where
+  term = if shouldNorm && depth t' <= depth t then t'  else t
+  fitness = foldl (\acc x -> acc + score1 min t x) 0 xs
+  t' = fromExp (norm (toExp t))
+
+score1 :: Scorable a => Int -> Tree a -> Case a -> Int
+score1 min t (args, rhs) = diff lhs rhs * weight
+  where
+  e1 = toExp t
+  lhs = norm (e1 `apply` args)
+  structure = leaves t
+  weight = if structure >= min then 1 else min - structure + 1
+
+----------------------------------------------------------------------
+\end{lstlisting}
+
+\section{Problems.hs}
+
+This file declares the problems that I had GP solve.
+
+\begin{lstlisting}
+{-# LANGUAGE
+    ViewPatterns
+  , OverloadedStrings
+  , ConstraintKinds
+  #-}
+
+module Problems where
+import Tree
+import Exp
+import Evo
+import Control.Applicative
+import Control.Monad.Reader
+import Control.Monad.State
+import System.Random
+import Data.List
+import Data.Bifunctor
+
+----------------------------------------------------------------------
+
+type Vars = String
+type Problem a = (String , Reader (Options a) (Sol a (Population a)))
+type Problems a = [Problem a]
+type Sol a b = (Options a , [(Gen , b)])
+
+prob1 :: Randomizable a => String -> Vars -> Exp a -> Problem a
+prob1 name args e = (name , local updateOpts (asks solution))
+  where
+  args' = map (:[]) args
+  updateOpts = \ f -> f { name = name , cases = [(map Var args' , e)] }
+  solution = \ opts -> (opts , runEvo opts)
+
+probn :: Randomizable a => String -> Cases a -> Problem a
+probn name cases = (name , local updateOpts (asks solution))
+  where
+  updateOpts = \ f -> f { name = name , cases = cases }
+  solution = \ opts -> (opts , runEvo opts)
+
+probs :: Randomizable a => String -> [Problem a] -> Problems a
+probs category = map (bimap id updateOpts)
+  where
+  updateOpts = local (\ opts -> opts { category = category })
+
+printOverview :: Sol a b -> IO ()
+printOverview (opts , sols) = do
+  putStrLn $ (name opts) ++ " : " ++ show (map fst sorted)
+    ++ " = " ++ show (sum (map fst sols))
+  where sorted = sortBy (\ x y -> compare (fst x) (fst y)) sols
+
+evoProbs :: Options a -> Problems a -> IO ()
+evoProbs opts probs = mapM_ printOverview sols
+  where sols = map (flip runReader opts . snd) probs
+
+----------------------------------------------------------------------
+
+printDetail :: (Gen , Population a) -> IO ()
+printDetail (gen , (map snd -> ts)) = do
+  putStrLn $ "Final Generation: " ++ show gen
+  putStrLn $ show ts
+
+printDetails :: Sol a (Population a) -> IO ()
+printDetails (opts , sols) = mapM_ printDetail sorted
+  where sorted = sortBy (\ x y -> compare (fst x) (fst y)) sols
+
+evoProb :: Options a -> Problem a -> IO ()
+evoProb opts prob = printDetails sol
+  where sol = runReader (snd prob) opts
+
+----------------------------------------------------------------------
+
+-- http://en.wikipedia.org/wiki/Church_encoding#Church_Booleans
+-- http://www.iep.utm.edu/lambda-calculi
+
+churchBool = "church-bool"
+churchNat = "church-nat"
+churchPair = "church-pair"
+churchList = "church-list"
+combLog = "comb-log"
+hilbertBool = "hilbert-bool"
+
+categories = [churchBool, churchNat, churchPair, churchList, combLog, hilbertBool]
+
+cboolProbs :: Problems Comb
+cboolProbs = probs churchBool
+  [ prob1 "true"  "ab"  $ "a"
+  , prob1 "false" "ab"  $ "b"
+  , prob1 "and"   "pq"  $ "p" :@: "q" :@: "p"
+  , prob1 "or"    "pq"  $ "p" :@: "p" :@: "q"
+  , prob1 "if"    "pab" $ "p" :@: "a" :@: "b"
+  , prob1 "not"   "pab" $ "p" :@: "b" :@: "a"
+  , prob1 "xor"   "pq"  $ "p" :@: ("q" :@: _false :@: _true) :@: "q"
+  ]
+
+cnatProbs :: Problems Comb
+cnatProbs = probs churchNat
+  [ prob1 "zero"  "fx"   $ "x"
+  , prob1 "one"   "fx"   $ "f" :@: "x"
+  , prob1 "two"   "fx"   $ "f" :@: ("f" :@: "x")
+  , prob1 "three" "fx"   $ "f" :@: ("f" :@: ("f" :@: "x"))
+  , prob1 "four"  "fx"   $ "f" :@: "f" :@: ("f" :@: ("f" :@: "x"))
+  , prob1 "succ"  "nfx"  $ "f" :@: ("n" :@: "f" :@: "x")
+  , prob1 "plus"  "mnfx" $ "m" :@: "f" :@: ("n" :@: "f" :@: "x")
+  , prob1 "mult"  "mnf"  $ "m" :@: ("n" :@: "f")
+  , prob1 "exp"   "mn"   $ "n" :@: "m"
+  ]
+
+cpairProbs :: Problems Comb
+cpairProbs = probs churchPair
+  [ prob1 "pair"   "xyz" $ "z" :@: "x" :@: "y"
+  , prob1 "first"  "p"   $ "p" :@: _true
+  , prob1 "second" "p"   $ "p" :@: _false
+  ]
+
+clistProbs :: Problems Comb
+clistProbs = probs churchList
+  [ prob1 "nil"    "cn"   $ "n"
+  , prob1 "isnil"  "l"    $ "l" :@: (_K :@: _K :@: _false) :@: _true
+  , prob1 "cons"   "htcn" $ "c" :@: "h" :@: ("t" :@: "c" :@: "n")
+  , prob1 "head"   "l"    $ "l" :@: _true :@: _false
+  -- , prob1 "tail"   "lcn"  $ "l" :@: undefined :@: (_K :@: "n") _false
+  ]
+
+-- http://www.angelfire.com/tx4/cus/combinator/birds.html
+
+combLogProbs :: Problems Comb
+combLogProbs = probs combLog
+ [ prob1 "B"     "abc"     $ "a" :@: ("b" :@: "c")
+ , prob1 "B1"    "abcd"    $ "a" :@: ("b" :@: "c" :@: "d")
+ , prob1 "B2"    "abcde"   $ "a" :@: ("b" :@: "c" :@: "d" :@: "e")
+ , prob1 "B3"    "abcd"    $ "a" :@: ("b" :@: ("c" :@: "d"))
+ , prob1 "C"     "abc"     $ "a" :@: "c" :@: "b"
+ , prob1 "D"     "abcd"    $ "a" :@: "b" :@: ("c" :@: "d")
+ , prob1 "D1"    "abcde"   $ "a" :@: "b" :@: "c" :@: ("d" :@: "e")
+ , prob1 "D2"    "abcde"   $ "a" :@: ("b" :@: "c") :@: ("d" :@: "e")
+ , prob1 "E"     "abcde"   $ "a" :@: "b" :@: ("c" :@: "d" :@: "e")
+ , prob1 "E^"    "abcdefg" $ "a" :@: ("b" :@: "c" :@: "d") :@: ("e" :@: "f" :@: "g")
+ , prob1 "F"     "abc"     $ "c" :@: "b" :@: "a"
+ , prob1 "G"     "abcd"    $ "a" :@: "d" :@: ("b" :@: "c")
+ , prob1 "H"     "abc"     $ "a" :@: "b" :@: "c" :@: "b"
+ , prob1 "I"     "a"       $ "a"
+ , prob1 "J"     "abcd"    $ "a" :@: "b" :@: ("a" :@: "d" :@: "c")
+ , prob1 "K"     "ab"      $ "a"
+ , prob1 "L"     "ab"      $ "a" :@: ("b" :@: "b")
+ , prob1 "M"     "a"       $ "a" :@: "a"
+ , prob1 "M2"    "ab"      $ "a" :@: "b" :@: ("a" :@: "b")
+ , prob1 "O"     "ab"      $ "b" :@: ("a" :@: "b")
+ , prob1 "Q"     "abc"     $ "b" :@: ("a" :@: "c")
+ , prob1 "Q1"    "abc"     $ "a" :@: ("c" :@: "b")
+ , prob1 "Q2"    "abc"     $ "b" :@: ("c" :@: "a")
+ , prob1 "Q3"    "abc"     $ "c" :@: ("a" :@: "b")
+ , prob1 "Q4"    "abc"     $ "c" :@: ("b" :@: "a")
+ , prob1 "R"     "abc"     $ "b" :@: "c" :@: "a"
+ , prob1 "S"     "abc"     $ "a" :@: "c" :@: ("b" :@: "c")
+ , prob1 "T"     "ab"      $ "b" :@: "a"
+ , prob1 "U"     "ab"      $ "b" :@: ("a" :@: "a" :@: "b")
+ , prob1 "V"     "abc"     $ "c" :@: "a" :@: "b"
+ , prob1 "W"     "ab"      $ "a" :@: "b" :@: "b"
+ , prob1 "W1"    "ab"      $ "b" :@: "a" :@: "a"
+ , prob1 "I*"    "ab"      $ "a" :@: "b"
+ , prob1 "W*"    "abc"     $ "a" :@: "b" :@: "c" :@: "c"
+ , prob1 "C*"    "abcd"    $ "a" :@: "b" :@: "d" :@: "c"
+ , prob1 "R*"    "abcd"    $ "a" :@: "c" :@: "d" :@: "b"
+ , prob1 "F*"    "abcd"    $ "a" :@: "d" :@: "c" :@: "b"
+ , prob1 "V*"    "abcd"    $ "a" :@: "c" :@: "b" :@: "d"
+ , prob1 "I**"   "abc"     $ "a" :@: "b" :@: "c"
+ , prob1 "W**"   "abcd"    $ "a" :@: "b" :@: "c" :@: "d" :@: "d"
+ , prob1 "C**"   "abcde"   $ "a" :@: "b" :@: "c" :@: "e" :@: "d"
+ , prob1 "R**"   "abcde"   $ "a" :@: "b" :@: "d" :@: "e" :@: "c"
+ , prob1 "F**"   "abcde"   $ "a" :@: "b" :@: "e" :@: "d" :@: "c"
+ , prob1 "V**"   "abcde"   $ "a" :@: "b" :@: "e" :@: "c" :@: "d"
+ , prob1 "KI"    "ab"      $ "b"
+ , prob1 "KM"    "ab"      $ "b" :@: "b"
+ , prob1 "C(KM)" "ab"      $ "a" :@: "a"
+ ]
+
+hboolProbs :: Problems Boolean
+hboolProbs = probs hilbertBool
+  [ probn "not"
+    [ ([Prim True_b] , Prim False_b)
+    , ([Prim False_b] , Prim True_b)
+    ]
+  , probn "and"
+    [ ([Prim True_b, Prim True_b] , Prim True_b)
+    , ([Prim False_b, "b"] , Prim False_b)
+    , (["a", Prim False_b] , Prim False_b)
+    ]
+  , probn "or"
+    [ ([Prim True_b, "b"] , Prim True_b)
+    , (["a", Prim True_b] , Prim False_b)
+    , ([Prim False_b, Prim False_b] , Prim False_b)
+    ]
+  , probn "xor"
+    [ ([Prim True_b, Prim True_b] , Prim False_b)
+    , ([Prim False_b, Prim True_b] , Prim True_b)
+    , ([Prim True_b, Prim False_b] , Prim True_b)
+    , ([Prim False_b, Prim False_b] , Prim False_b)
+    ]
+  ]
+
+----------------------------------------------------------------------
+\end{lstlisting}
+
+\section{Tree.hs}
+
+This file defines the grammar of candidate solutions, and functions to
+traverse and recombine them (used by crossover).
+
+\begin{lstlisting}
+module Tree where
+
+----------------------------------------------------------------------
+
+data Tree a = Branch (Tree a) (Tree a) | Leaf a
+  deriving (Show,Read,Eq)
+
+type Crumb a = Either (Tree a) (Tree a)
+type Crumbs a = [Crumb a]
+
+type Zipper a = (Tree a , Crumbs a)
+
+----------------------------------------------------------------------
+
+depth :: Tree a -> Int
+depth (Leaf _) = 0
+depth (Branch l r) = 1 + max (depth l) (depth r)
+
+size :: Tree a -> Int
+size (Leaf _) = 1
+size (Branch l r) = 1 + size l + size r
+
+leaves :: Tree a -> Int
+leaves (Leaf _) = 1
+leaves (Branch l r) = leaves l + leaves r
+
+root :: Tree a -> Zipper a
+root t = (t , [])
+
+isRoot :: Zipper a -> Bool
+isRoot (t , []) = True
+isRoot _ = False
+
+isLeaf :: Zipper a -> Bool
+isLeaf (Leaf _ , _) = True
+isLeaf _ = False
+
+goUp :: Zipper a -> Zipper a
+goUp (l , Left r : xs) = (Branch l r , xs)
+goUp (r , Right l : xs) = (Branch l r , xs)
+goUp _ = error "Cannot go Up"
+
+goLeft :: Zipper a -> Zipper a
+goLeft (Branch l r , xs) = (l , Left r : xs)
+goLeft _ = error "Cannot go left"
+
+goRight :: Zipper a -> Zipper a
+goRight (Branch l r , xs) = (r , Right l : xs)
+goRight _ = error "Cannot go right"
+
+traverse :: Zipper a -> [Zipper a]
+traverse z | isLeaf z = [z]
+traverse z | otherwise = z : (traverse (goLeft z) ++ traverse (goRight z))
+
+locate :: Tree a -> Int -> Zipper a
+locate t i = traverse (root t) !! i
+
+replace :: Tree a -> Zipper a -> Zipper a
+replace t (_ , xs) = (t , xs)
+
+goRoot :: Zipper a -> Zipper a
+goRoot z | isRoot z = z
+goRoot z | otherwise = goRoot (goUp z)
+
+currentTree :: Zipper a -> Tree a
+currentTree = fst
+
+currentDepth :: Zipper a -> Int
+currentDepth = length . snd
+
+rootTree :: Zipper a -> Tree a
+rootTree = currentTree . goRoot
+
+eg :: Tree Char
+eg = Branch (Branch (Leaf 'a') (Branch (Leaf 'b') (Leaf 'c'))) (Leaf 'd')
+
+----------------------------------------------------------------------
+\end{lstlisting}
+
+\section{CLI.hs}
+
+This file defines the command-line interface to the GP algorithm.
+
+\begin{lstlisting}
+{-# LANGUAGE
+    ViewPatterns
+  , OverloadedStrings
+  , ConstraintKinds
+  #-}
+
+module Main where
+import Tree
+import Exp
+import Evo
+import Problems
+import Control.Applicative
+import Control.Monad.Reader
+import Control.Monad.State
+import System.Random
+import Data.List
+import Data.Bifunctor
+import System.Environment
+import System.Console.GetOpt
+import Data.Maybe ( fromMaybe )
+
+----------------------------------------------------------------------
+
+type OptTrans a = Options a -> Options a
+
+option :: String -> String -> String -> ArgDescr (OptTrans a) -> OptDescr (OptTrans a)
+option tag name desc f = Option tag [name] f desc
+
+options :: [OptDescr (OptTrans a)]
+options =
+  [ option "h" "help" "display this message"
+      (NoArg (\ opts -> opts { category = "help" }))
+  , option "d" "defaults" "print default options"
+      (NoArg (\ opts -> opts { category = "defaults" }))
+  , option "r" "random" "random program generation"
+      (NoArg (\ opts -> opts { randStrat = True }))
+  , option "n" "normalize" "partially normalize population"
+      (NoArg (\ opts -> opts { normalize = True }))
+  , option "c" "category" "category of problems"
+      (OptArg (maybe id (\ str opts -> opts { category = str })) "string")
+  , option "p" "problem" "problem in a category"
+      (OptArg (maybe id (\ str opts -> opts { name = str })) "string")
+  , option "s" "seed" "random number seed"
+      (OptArg (maybe id (\ n opts -> opts { seed = read n })) "number")
+  , option "a" "attempts" "number of runs"
+      (OptArg (maybe id (\ n opts -> opts { attempts = read n })) "number")
+  , option "p" "population" "population size"
+      (OptArg (maybe id (\ n opts -> opts { popSize = read n })) "number")
+  , option "e" "elitism" "elitism"
+      (OptArg (maybe id (\ n opts -> opts { elitism = read n / 100.0 })) "percent")
+  , option "i" "max-init-depth" "maximum initial population depth"
+      (OptArg (maybe id (\ n opts -> opts { maxInitDepth = read n })) "number")
+  , option "g" "max-genetic-depth" "maximum genetic operation depth"
+      (OptArg (maybe id (\ n opts -> opts { maxGeneticDepth = read n })) "number")
+  , option "u" "min-structure" "mininum structure"
+      (OptArg (maybe id (\ n opts -> opts { minStruture = read n })) "number")
+  , option "m" "mutation" "mutation rate"
+      (OptArg (maybe id (\ n opts -> opts { mutationRate = read n / 100.0 })) "percent")
+  ]
+
+parseOpts :: IO (Options a, [String])
+parseOpts = do
+  argv <- getArgs
+  case getOpt Permute options argv of
+    (o,n,[]  ) -> return (foldl (flip id) defaultOpts o, n)
+    (_,_,errs) -> ioError . userError $ concat errs ++ usageBanner
+
+----------------------------------------------------------------------
+
+doption :: Show a => String -> String -> String -> a -> OptDescr ()
+doption tag name desc val = Option tag [name] (OptArg (const ()) (show val)) desc
+
+defaultOptions :: Options a -> [OptDescr ()]
+defaultOptions opts =
+  [ doption "s" "seed" "random number seed"
+      (seed opts)
+  , doption "a" "attempts" "number of runs"
+      (attempts opts)
+  , doption "p" "population" "population size"
+      (popSize opts)
+  , doption "e" "elitism" "elitism"
+      (truncate (100 * elitism opts))
+  , doption "i" "max-init-depth" "maximum initial population depth"
+      (maxInitDepth opts)
+  , doption "g" "max-genetic-depth" "maximum genetic operation depth"
+      (maxGeneticDepth opts)
+  , doption "u" "min-structure" "mininum structure"
+      (minStruture opts)
+  , doption "m" "mutation" "mutation rate"
+      (truncate (100 * mutationRate opts))
+  ]
+
+----------------------------------------------------------------------
+
+usageBanner = usageInfo "Usage: cgp [OPTION...]" options
+
+categoryUsage = "--category[=string] " ++ categoryMustBe
+
+categoryError cat = "category `" ++ cat ++ "' "
+  ++ categoryMustBe ++ "\n"
+
+categoryMustBe = "must be one of the following:\n"
+ ++ intercalate ", " categories
+
+nameError cat name names = "name `" ++ name
+  ++ "' for category `" ++ cat
+  ++ "' must be one of the following:\n"
+  ++ intercalate ", " names
+
+maxDepthError init cross =
+     "Max initial depth (" ++ show init
+  ++ ") must be greater than max genetic depth ("
+  ++ show cross ++ ")"
+
+injOpts :: Options a -> Options b
+injOpts opts = opts { cases = [] }
+
+printProb :: Options a -> Problems b -> IO ()
+printProb opts@(null . name -> True) probs = evoProbs (injOpts opts) probs
+printProb opts@(name -> name) probs = case lookup name probs of
+  Just prob -> evoProb (injOpts opts) (name , prob)
+  Nothing -> ioError . userError $ nameError (category opts) name names
+  where names = map fst probs
+
+defaultsBanner :: Options a -> String
+defaultsBanner opts = usageInfo "Defaults: cgp [OPTION...]" (defaultOptions opts)
+
+----------------------------------------------------------------------
+
+main = do
+  (opts , _) <- parseOpts
+  if maxInitDepth opts > maxGeneticDepth opts
+  then ioError . userError $ maxDepthError (maxInitDepth opts) (maxGeneticDepth opts)
+  else case category opts of
+    x | x == "help" || x == "" -> putStrLn $ usageBanner ++ "\n" ++ categoryUsage
+    x | x == "defaults" -> putStrLn $ defaultsBanner opts
+    x | x == churchBool -> printProb opts cboolProbs
+    x | x == churchNat -> printProb opts cnatProbs
+    x | x == churchPair -> printProb opts cpairProbs
+    x | x == churchList -> printProb opts clistProbs
+    x | x == combLog -> printProb opts combLogProbs
+    x | x == hilbertBool -> printProb opts hboolProbs
+    unknown -> ioError . userError $ categoryError unknown
 
 ----------------------------------------------------------------------
 \end{lstlisting}
