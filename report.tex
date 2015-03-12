@@ -79,6 +79,23 @@ $$
 \forall a,b . ~ \exists \textrm{and} . ~ \textrm{and} ~ a ~ b = a ~ b ~ a
 $$
 
+My algorithm has to give solutions in terms of some primitive set of
+combinators. I started with just S and K, which are sound and complete
+for the implicational fragment of intuitionistic logic. However, after
+experimentation I ended up discovering that S, K, I, B, and C are a
+good base set. The combinators B and C can be seen as common/useful
+specializations of S, and are due to the logician Moses Sch{\"o}nfinkel.
+
+\begin{align*}
+S &= \lambda a,b,c . ~ a ~ c ~ (b ~ c)\\
+K &= \lambda a,b . ~ a\\
+I &= \lambda a . ~ a\\
+B &= \lambda a,b,c . ~ a ~ (b ~ c)\\
+C &= \lambda a,b,c . ~ a ~ c ~ b
+\end{align*}
+
+
+
 \subsection{Hilbert System Problems}
 
 %% crossover over terms without variables, but fitness/problems can
