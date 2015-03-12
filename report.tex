@@ -27,10 +27,10 @@ semantic unification problem that has several universally quantified
 variables and a single existential variable. The left hand-side of the
 equation is always the existential variable applied to some number of
 arbitrary expressions, and the right-hand side is an arbitrary
-expression. A futher restriction is that the aforementioned arbitrary
+expression. A further restriction is that the aforementioned arbitrary
 expressions cannot include the existential variable.
 
-Notably, the a solution for an existential variable can be a
+Notably, a solution for an existential variable can be a
 higher-order term -- a function that takes other functions as
 arguments. I use genetic programming, mostly replicating the work by
 Matthias Fuchs in his ``Evolving Combinators'' paper, to solve for the
@@ -48,7 +48,7 @@ referenced.
 
 Most of my time was spent using the project to solve combinatory logic
 problems. For example, the following combinatory logic problem asks for a term
-consisting exclusively of combinators that is equivalent to the
+consisting exclusively of combinators that is equivalent to the following
 desired lambda-expression.
 
 $$
@@ -70,7 +70,7 @@ $$
 Besides functions, I was also interested in evolving problems
 containing datatypes. Notably, problems with datatypes can be
 considered a subset of combinatory logic problems by using church
-encodings. For example, below if the church-encoding of true and
+encodings. For example, below is the church-encoding of true and
 false.
 
 \begin{align*}
@@ -115,7 +115,7 @@ C ~ a ~ b ~ c &= a ~ c ~ b
 \subsection{Hilbert System Problems}
 
 Besides Church-encoded problems, I also wanted to solve problems with
-native datatypes (to avoid the inneficiencies associated with
+native datatypes (to avoid the inefficiencies associated with
 encodings, and to be more similar to real languages).
 To do so, I ended up using a Hilbert system. A Hilbert system replaces
 the standard implication introduction and elimination rules with the
@@ -145,7 +145,7 @@ Hilbert system as follows.
 \end{align*}
 
 The problem above demonstrates two extensions of my system, where we
-can give multiple fitness cases (multiple equations), and we can apply
+can give multiple fitness cases (multiple conjoined equations), and we can apply
 arbitrary expressions (e.g. ``true'' instead of just variables) to the
 desired existential on the left-hand side.
 
@@ -164,7 +164,7 @@ To compute fitness, we reduce the RHS and compare it to the result of
 reducing the LHS after applying its arguments to the candidate
 existential variable solution. However, the comparison is not merely a
 binary comparison. Instead, it is a structural difference calculation
-of the two resulting abstract syntax trees. Furthermore, there is a
+between the two resulting abstract syntax trees. Furthermore, there is a
 weighting mechanism to assign higher fitness scores to solutions that
 do not have some minimum number of combinators at the leaves (this
 algorithm input is called the ``minimum structure'').
@@ -180,15 +180,15 @@ fitter-end of the spectrum).
 Additionally, Kuchs did not have mutation so I added it as an option
 for the user.
 I also added a novel option to partially evaluate population
-candidates during the algorithm run, thus removing bloat. Finally,
+candidates during the algorithm run, thereby removing bloat. Finally,
 Kuchs performed crossover by first crossing over parents, then
 recursively trying again if the maximum depth requirement was
 violated. I improved the algorithm by only choosing from crossover
 points that result in a child satisfying the maximum depth
 requirement. This is accomplished by filtering the depth of all
 subnodes of the second parent by whether they are
-less-than-or-equal-to the maximum depth minus the distance from the
-point of the first parent to the root.
+less-than-or-equal-to the maximum depth minus the distance of the
+first parent to the root.
 
 \subsection{Portion of Project Completed}
 
@@ -214,7 +214,7 @@ would require fitness to discourage those kinds of solutions.
 
 About midway through the course I added partial evaluation to my GP
 algorithm. Later I noticed that the algorithm was slow on large
-problems, and turning on mutation would sometimes cause infinite
+problems, and enabling mutation would sometimes cause infinite
 loops. The solution to this mystery was that partial normalization can
 sometimes \textit{increase} the solution size, making it bigger than
 the maximum depth requirement. Once that invariant was violated, other
@@ -227,7 +227,7 @@ was smaller than the original candidate.
 \begin{itemize}
 \item Always test with a random or brute force algorithm first. This can
 help you find which problems are difficult in the first place, so you
-can focus on making your algorithm to better on those.
+can focus on making your algorithm perform better on those.
 \item Use dynamic checks of invariants in your algorithm in case future
 changes break them.
 \end{itemize}
