@@ -10,6 +10,8 @@
 \usepackage{graphicx}
 \usepackage[hscale=0.7,vscale=0.8]{geometry}
 
+\newcommand{\n}[1]{\textrm{#1}}
+
 \begin{document}
 
 \maketitle
@@ -68,15 +70,15 @@ encodings. For example, below if the church-encoding of true and
 false.
 
 \begin{align*}
-\textrm{true} &= \lambda a. \lambda b. a\\
-\textrm{false} &= \lambda a. \lambda b. b
+\n{true} &= \lambda a. \lambda b. a\\
+\n{false} &= \lambda a. \lambda b. b
 \end{align*}
 
 Using Church-encodings, you can represent the ``and'' problem as
 follows.
 
 $$
-\forall a,b . ~ \exists \textrm{and} . ~ \textrm{and} ~ a ~ b = a ~ b ~ a
+\forall a,b . ~ \exists \n{and} . ~ \n{and} ~ a ~ b = a ~ b ~ a
 $$
 
 My algorithm has to give solutions in terms of some primitive set of
@@ -94,9 +96,54 @@ B &= \lambda a,b,c . ~ a ~ (b ~ c)\\
 C &= \lambda a,b,c . ~ a ~ c ~ b
 \end{align*}
 
+The GP system is based on term-rewriting, so the axioms above are
+actually encoded as follows.
+
+\begin{align*}
+S ~ a ~ b ~ c &= a ~ c ~ (b ~ c)\\
+K ~ a ~ b &= a\\
+I ~ a &= a\\
+B ~ a ~ b ~ c &= a ~ (b ~ c)\\
+C ~ a ~ b ~ c &= a ~ c ~ b
+\end{align*}
 
 
 \subsection{Hilbert System Problems}
+
+Besides Church-encoded problems, I also wanted to solve problems with
+native datatypes (to avoid the inneficiencies associated with
+encodings, and to be more similar to real languages).
+To do so, I ended up using a Hilbert system. A Hilbert system replaces
+the standard implication introduction and elimination rules with the
+combinators S and K, and axiomatically extends the system with other
+native types. For example, below is the Hilbert system for a language
+with booleans.
+
+\begin{align*}
+S ~ a ~ b ~ c &= a ~ c ~ (b ~ c)\\
+K ~ a ~ b &= a\\
+\n{If} ~ \n{true} ~ a ~ b &= a\\
+\n{If} ~ \n{false} ~ a ~ b &= b
+\end{align*}
+
+Now, my system can encode the ``and'' problem using native datatypes of a
+Hilbert system as follows.
+
+\begin{align*}
+\forall a,b . ~ \exists \n{and} .\\
+\n{and} ~ \n{true} ~ \n{true} &= \n{true}\\
+&\land\\
+\n{and} ~ \n{false} ~ b &= \n{false}\\
+&\land\\
+\n{and} ~ a ~ \n{false} &= \n{false}
+\end{align*}
+
+The problem above demonstrates two extensions of my system, where we
+can give multiple fitness cases (multiple equations), and we can apply
+arbitrary expressions (e.g. ``true'' instead of just variables) to the
+desired existential on the left-hand side.
+
+
 
 %% crossover over terms without variables, but fitness/problems can
 %%   mention variables
