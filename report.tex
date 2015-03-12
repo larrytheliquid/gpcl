@@ -1,0 +1,156 @@
+\title{\textbf{Final Report}\\Higher-Order Genetic Programming \\for Semantic Unifiers}
+
+\author{Larry Diehl}
+\date{\today}
+
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[hscale=0.7,vscale=0.8]{geometry}
+
+\begin{document}
+
+\maketitle
+
+\section{Project Description}
+
+My project is about solving for existential variables in one or more
+equations, such that the equations become satisfied after semantic
+reductions have occurred. This ends up being a restricted form of a
+semantic unification problem that has several universally quantified
+variables and a single existential variable. The left hand-side of the
+equation is always the existential variable applied to some number of
+arbitrary expressions, and the right-hand side is an arbitrary expression.
+
+Notably, the a solution for an existential variable can be a
+higher-order term -- a function that takes other functions as
+arguments. I use genetic programming, mostly replicating the work by
+Matthias Fuchs in his ``Evolving Combinators'' paper, to solve for the
+existential variables. The interesting part of this kind of GP is that
+higher-order solutions can be evolved. In standard GP with lambda
+terms, a crossover could result in variables unintentionally capturing
+other variables, or referencing variables not currently in scope. In
+Fuchs' GP, the population of candidate solutions are higher-order
+combinators. Trees of applications of combinators implicitly
+manipulate variables (via point-free programming), but crossover is
+not problematic because variables are never explicitly bound or
+referenced.
+
+\subsection{Combinatory Logic Problems}
+
+Most of my time was spent using the project to solve combinatory logic
+problems. For example, the following combinatory logic problem asks for a term
+consisting exclusively of combinators that is equivalent to the
+desired lambda-expression.
+
+$$
+T = \lambda a,b . ~ b ~ a
+$$
+
+A solution to this problem is the combinator below.
+
+$$
+(S(K(S((SK)K))))K
+$$
+
+In my system, this problem is represented by the following equation.
+
+$$
+\forall a,b . ~ \exists T . ~ T ~ a ~ b = b ~ a
+$$
+
+Besides functions, I was also interested in evolving problems
+containing datatypes. Notably, problems with datatypes can be
+considered a subset of combinatory logic problems by using church
+encodings. For example, below if the church-encoding of true and
+false.
+
+\begin{align*}
+\textrm{true} &= \lambda a. \lambda b. a\\
+\textrm{false} &= \lambda a. \lambda b. b
+\end{align*}
+
+Using Church-encodings, you can represent the ``and'' problem as
+follows.
+
+$$
+\forall a,b . ~ \exists \textrm{and} . ~ \textrm{and} ~ a ~ b = a ~ b ~ a
+$$
+
+\subsection{Hilbert System Problems}
+
+%% crossover over terms without variables, but fitness/problems can
+%%   mention variables
+%% fitness function with diff and minimum structure weight
+
+%% my contributions
+%%% datatypes via church encodings or native via hilbert system
+%%% good set of combinators
+%%% partial evaluation
+%%% always-correct crossover
+
+\section{Unanticipated Obstacles}
+
+\section{Lessons Learned}
+
+%% always test with random or brute force search first
+%% mutation making hard problems solved more consistently, but not
+%%   solving really hard problems
+%% use dynamic checks of invariants while developing (norm can increase size)
+
+\section{Code Statistics}
+
+\section{Code Appendix}
+
+
+%% Last week I started testing GP evolving solutions to problems
+%% involving datatypes, but they were Church-encoded datatypes (i.e. they
+%% were represented using lambdas). This week I started to move the
+%% project towards being able to evolve solutions using primitive
+%% datatypes and operations over them. One way to extend combinatory
+%% logic to have extra primitives ends up beign Illative Combinatory
+%% Logic, which I thought I was going to use originally. However, there
+%% are tricky issues regarding logical consistency in the illative
+%% version, so what I ended up using was more like a Hilbert system
+%% (regular combinators like S+K and axioms, rather than strange
+%% combinators like $\Xi$ that can lead to inconsistency).
+
+%% In previous weeks I have tested evolving combinatory logic problems
+%% with S+K, S+K+I, S+K+B+C, and S+K+I+B+C. My project had the logic for
+%% combinator use hardcoded, so any such change required me to edit old
+%% code and recompile things. This week I changed my architecture so the
+%% base combinators, and their reduction semantics, is independent
+%% of the rest of the code (so I don't have to touch or recompile old
+%% code when testing a new axiomatic basis).
+
+%% I have also allowed problems to be supplied with multiple fitness
+%% cases, instead of just one. Additionally, the fitness cases are now
+%% parameterized over arbitrary terms instead of just variables.
+
+%% All of this work together has allowed me to specify a combinator set
+%% for boolean problems like the one below:
+
+%% \begin{verbatim}
+%% S x y z = x z (y z)
+%% K x y = x
+%% If True ct cf = ct
+%% If False ct cf = cf
+%% \end{verbatim}
+
+%% And I can now specify problems with multiple fitness cases and
+%% non-variable arguments like the one below for logical ``and''.
+
+%% \begin{verbatim}
+%% and True True = True
+%% and True False = False
+%% and False True = False
+%% and False False = False
+%% \end{verbatim}
+
+%% Now I need to test many such problems to see how well the Genetic
+%% Hilbert system is able to solve them.
+
+\end{document}
+
