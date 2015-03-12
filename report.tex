@@ -186,24 +186,27 @@ subnodes of the second parent by whether they are
 less-than-or-equal-to the maximum depth minus the distance from the
 point of the first parent to the root.
 
-%% crossover over terms without variables, but fitness/problems can
-%%   mention variables
-%% fitness function with diff and minimum structure weight
-
-%% my contributions
-%%% datatypes via church encodings or native via hilbert system
-%%% good set of combinators
-%%% partial evaluation
-%%% always-correct crossover
-
 \section{Unanticipated Obstacles}
+
+About midway through the course I added partial evaluation to my GP
+algorithm. Later I noticed that the algorithm was slow on large
+problems, and turning on mutation would sometimes cause infinite
+loops. The solution to this mystery was that partial normalization can
+sometimes \textit{increase} the solution size, making it bigger than
+the maximum depth requirement. Once that invariant was violated, other
+parts of the algorithm that depended on it could loop. I got rid of
+this problem by only using the partial evaluation result if its depth
+was smaller than the original candidate.
 
 \section{Lessons Learned}
 
-%% always test with random or brute force search first
-%% mutation making hard problems solved more consistently, but not
-%%   solving really hard problems
-%% use dynamic checks of invariants while developing (norm can increase size)
+\begin{itemize}
+\item Always test with a random or brute force algorithm first. This can
+help you find which problems are difficult in the first place, so you
+can focus on making your algorithm to better on those.
+\item Use dynamic checks of invariants in your algorithm in case future
+changes break them.
+\end{itemize}
 
 \section{Code Statistics}
 
