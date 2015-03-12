@@ -15,7 +15,7 @@ import Data.String
 data SK = S' | K'
   deriving (Show,Read,Eq,Ord,Enum,Bounded)
 
-data Boolean = S_b | K_b | If_b | True_b | False_b
+data Boolean = S_b | K_b | C_b | B_b | If_b | True_b | False_b
   deriving (Show,Read,Eq,Ord,Enum,Bounded)
 
 data Comb = S | K | I | C | B
@@ -44,6 +44,8 @@ instance Contractible Comb where
 instance Contractible Boolean where
   contract (Prim S_b :@: x :@: y :@: z) = Just $ x :@: z :@: (y :@: z)
   contract (Prim K_b :@: x :@: _) = Just x
+  contract (Prim C_b :@: x :@: y :@: z) = Just $ x :@: z :@: y
+  contract (Prim B_b :@: x :@: y :@: z) = Just $ x :@: (y :@: z)
   contract (Prim If_b :@: Prim True_b :@: ct :@: cf) = Just $ ct
   contract (Prim If_b :@: Prim False_b :@: ct :@: cf) = Just $ cf
   contract _ = Nothing
