@@ -18,3 +18,8 @@ Default
 _TZ_*
 *.png
 cgp
+*.nav
+*.out
+*.snm
+*.toc
+*.zip
