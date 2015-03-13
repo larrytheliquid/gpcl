@@ -14,8 +14,7 @@
 
 \frame{\titlepage}
 
-\begin{frame}
-\frametitle{Genetic Algorithm}
+\begin{frame}{Genetic Algorithm (GA)}
 
 \begin{block}{Algorithm}
 \begin{enumerate}
@@ -33,8 +32,7 @@ A list is an \textit{encoding} of a desired solution.
 
 \end{frame}
 
-\begin{frame}
-\frametitle{Genetic Programming}
+\begin{frame}{Genetic Programming (GP)}
 
 \begin{block}{Algorithm}
 \begin{enumerate}
@@ -48,12 +46,89 @@ A list is an \textit{encoding} of a desired solution.
 
 \begin{block}{Trees}
 \begin{itemize}
-\item Trees are \textit{concrete} program abstract syntax trees.
+\item Trees are \textit{concrete} program abstract syntax trees (AST's).
 \item Fitness involves \textit{evaluating} programs.
 \end{itemize}
 \end{block}
 
 \end{frame}
+
+\begin{frame}{First-Order GP Crossover}
+
+\begin{block}{Male}
+$3 + 7$
+\end{block}
+
+\begin{block}{Female}
+$n * 2$
+\end{block}
+
+\begin{block}{Child}
+$n + n$
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Higher-Order $\lambda$-GP Crossover}
+
+AST branches are applications or lambda bindings, and leaves are
+variables.
+
+\begin{block}{Male}
+$\lambda x. ~ x ~ x$
+\end{block}
+
+\begin{block}{Female}
+$\lambda y. ~ y$
+\end{block}
+
+\begin{block}{Child}
+\diff{$\lambda x. ~ y$}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Combinatory Logic}
+\begin{block}{Base Combinators}
+\begin{align*}
+S &= \lambda f,g,x . ~ f ~ x ~ (g ~ x)\\
+K &= \lambda x,y . ~ x\\
+\end{align*}
+\end{block}
+
+\begin{block}{Intuitionstic Logic}
+\begin{itemize}
+\item
+The combinators S and K are sound and complete for the implicational
+fragment of intuitionstic propositional logic!
+\item
+Just like $\lambda$-terms, combinator expressions can represent
+higher-order programs.
+\end{itemize}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Higher-Order Combinatory-GP Crossover}
+
+AST branches are only applications, and leaves are only combinators.
+
+\begin{block}{Male}
+$(SK)S$
+\end{block}
+
+\begin{block}{Female}
+$K(SS)$
+\end{block}
+
+The child below is the identity combinator $I = \lambda x . ~ x$
+
+\begin{block}{Child}
+$(SK)K$
+\end{block}
+
+\end{frame}
+
 
 %% \begin{frame}
 %% \frametitle{Classical vs Intuitionistic Logic}
