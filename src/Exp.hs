@@ -168,11 +168,11 @@ type Scorable a = (Eq a, Contractible a)
 type Case a = (Args a, Exp a)
 type Cases a = [Case a]
 
-score :: Scorable a => Bool -> Int -> Tree a -> Cases a -> (Tree a , Int)
-score shouldNorm min t xs = (term , fitness)
+score :: Scorable a => Bool -> Int -> Int -> Tree a -> Cases a -> (Tree a , Int)
+score shouldNorm max min t xs = (term , fitness)
   where
-  term = if shouldNorm && depth t' <= depth t then t'  else t
-  fitness = foldl (\acc x -> acc + score1 min t x) 0 xs
+  fitness = foldl (\acc x -> acc + score1 min term x) 0 xs
+  term = if shouldNorm && depth t' <= max then t'  else t
   t' = fromExp (norm (toExp t))
 
 score1 :: Scorable a => Int -> Tree a -> Case a -> Int

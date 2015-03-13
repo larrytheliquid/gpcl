@@ -62,9 +62,10 @@ randBoundedZip bound t = (zs !!) <$> randInt (length zs)
 mkIndiv :: Scorable a => Tree a -> Evo a (Indiv a)
 mkIndiv t = do
   minStruture <- asks minStruture
+  maxGeneticDepth <- asks maxGeneticDepth
   cases <- asks cases
   normalize <- asks normalize
-  return (score normalize minStruture t cases)
+  return (score normalize maxGeneticDepth minStruture t cases)
 
 ----------------------------------------------------------------------
 
