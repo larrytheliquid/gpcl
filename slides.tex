@@ -8,6 +8,7 @@
 \date[Fall 2014]
 {CS 541 - Final Project}
 
+\newcommand{\n}[1]{\textrm{#1}}
 \newcommand{\diff}[1]{\textcolor{red}{#1}}
 
 \begin{document}
@@ -128,6 +129,57 @@ $(SK)K$
 \end{block}
 
 \end{frame}
+
+\begin{frame}{Combinatory Logic Problems}
+
+\begin{block}{Problem description}
+Find a combinatorial expression that is extensionally equivalent to a $\lambda$-term.
+\end{block}
+
+\begin{block}{Desired combinator as $\lambda$-term}
+$T = \lambda a,b . ~ b ~ a$
+\end{block}
+
+\begin{block}{Solution as combinatorial expression}
+$T = (S(K(S((SK)K))))K$
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Church-Encoded Datatypes}
+
+Constructors of datatypes are encoded as functions representing the
+cases of their eliminators.
+
+\begin{block}{Boolean constructors}
+\begin{itemize}
+\item true
+\item false
+\end{itemize}
+\end{block}
+
+\begin{block}{Boolean eliminator}
+\begin{itemize}
+\item $\n{if} ~ \n{true} ~ \n{then} ~ x ~ \n{else} ~ y = x$
+\item $\n{if} ~ \n{false} ~ \n{then} ~ x ~ \n{else} ~ y = y$
+\end{itemize}
+\end{block}
+
+\begin{block}{Church-encoded boolean constructors}
+\begin{itemize}
+\item $\lambda a,b. ~ a$
+\item $\lambda a,b. ~ b$
+\end{itemize}
+\end{block}
+
+\begin{block}{Church-encoded boolean eliminator}
+The eliminator is implicit in the constructors!
+\end{block}
+
+
+
+\end{frame}
+
 
 
 %% \begin{frame}
