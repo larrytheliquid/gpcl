@@ -137,7 +137,7 @@ Find a combinatorial expression that is extensionally equivalent to a $\lambda$-
 \end{block}
 
 \begin{block}{Desired combinator as $\lambda$-term}
-$T = \lambda a,b . ~ b ~ a$
+$T = \lambda x,y . ~ y ~ x$
 \end{block}
 
 \begin{block}{Solution as combinatorial expression}
@@ -145,6 +145,81 @@ $T = (S(K(S((SK)K))))K$
 \end{block}
 
 \end{frame}
+
+\begin{frame}{Semantic Unification Problems}
+
+\begin{block}{Problem description}
+An equation has several universally quantified variables and a single
+existentionally quantified. Find a solution to the existential that
+makes the equation true after reductions. The LHS is the existential
+applied to the universal variables, and the RHS is an arbitrary
+expression that can mention the universal variables but not the
+exitential variable.
+\end{block}
+
+\begin{block}{Desired true equation after existential substitution}
+$\forall x,y . ~ \exists T . ~ T ~ x ~ y = y ~ x$
+\end{block}
+
+\begin{block}{Solution as combinatorial expression}
+$T = (S(K(S((SK)K))))K$
+\end{block}
+
+GP fitness is a structural equality with the RHS, weighted by a
+minimum complexity requirement.
+
+\end{frame}
+
+
+\begin{frame}{Primitives combinators}
+
+\begin{align*}
+S &= \lambda a,b,c . ~ a ~ c ~ (b ~ c)\\
+K &= \lambda a,b . ~ a\\
+I &= \lambda a . ~ a\\
+B &= \lambda a,b,c . ~ a ~ (b ~ c)\\
+C &= \lambda a,b,c . ~ a ~ c ~ b
+\end{align*}
+
+\end{frame}
+
+
+\begin{frame}{Primitives combinators}
+
+\begin{align*}
+S ~ a ~ b ~ c &= a ~ c ~ (b ~ c)\\
+K ~ a ~ b &= a\\
+B ~ a ~ b ~ c &= a ~ (b ~ c)\\
+C ~ a ~ b ~ c &= a ~ c ~ b\\
+\n{If} ~ \n{true} ~ a ~ b &= a\\
+\n{If} ~ \n{false} ~ a ~ b &= b
+\end{align*}
+
+\end{frame}
+
+\begin{frame}{Semantic Unification Problems}
+
+\begin{block}{Problem description}
+... The LHS is the existential
+applied to arbitrary expressions that can mention the universal
+variables, and the RHS is an arbitrary
+expression that can mention the universal variables. There may be
+multiple equations that are conjoined together.
+\end{block}
+
+\begin{block}{Desired true equations after existential substitution}
+\begin{align*}
+&\forall x,y . ~ \exists \n{and} .\\
+&\n{and} ~ \n{true} ~ \n{true} = \n{true}\\
+&\land \n{and} ~ \n{false} ~ y = \n{false}\\
+&\land \n{and} ~ x ~ \n{false} = \n{false}
+\end{align*}
+\end{block}
+
+GP treats conjoined equations as multiple fitness cases.
+
+\end{frame}
+
 
 \begin{frame}{Church-Encoded Datatypes}
 
